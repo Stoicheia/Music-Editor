@@ -222,7 +222,7 @@ namespace UI
             }
         }
 
-        private void UpdateTimelineEventGraphics()
+        private void UpdateTimelineEventGraphics() //TODO: Draw durations, update stacking with durations
         {
             var events = Engine.Events; // assume sorted by time
 
@@ -254,7 +254,7 @@ namespace UI
                 int stackTotal = stackOrder + stacksAfterMe;
 
                 float y = Mathf.LerpUnclamped(_panel.yMin - _stackExpand, _panel.yMax + _stackExpand, (float)stackOrder/(stackTotal + 1));
-                eventGraphic.rectTransform.anchoredPosition = new Vector2(x, y);
+                eventGraphic.rectTransform.anchoredPosition = new Vector2(x, y); // TODO: Replace this part with function in EventNode.cs
                 eventGraphic.gameObject.SetActive(true);
 
                 eventGraphic.Event = e;

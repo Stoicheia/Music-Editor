@@ -67,5 +67,17 @@ namespace Rhythm
         {
             _rhythmData.Remove(d);
         }
+
+        public bool Overlaps(RhythmEvent other, float error)
+        {
+            return Contains(other, error) || other.Contains(this, error);
+        }
+
+        private bool Contains(RhythmEvent other, float error)
+        {
+            float leftBound = TimeSeconds - error;
+            float rightBound = TimeSeconds + error;
+            return other.TimeSeconds >= leftBound && other.TimeSeconds <= rightBound;
+        }
     }
 }
