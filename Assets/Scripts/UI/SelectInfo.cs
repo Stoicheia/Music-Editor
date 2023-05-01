@@ -1,6 +1,6 @@
 ﻿namespace UI
 {
-    public abstract class SelectInfo
+    public class SelectInfo
     {
         
     }

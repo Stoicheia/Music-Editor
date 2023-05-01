@@ -15,3 +15,7 @@ MonoBehaviour:
   _clip: {fileID: 8300000, guid: a1d05fc17c6f842488a7370665c59c45, type: 3}
   _name: Nooblets
   _author: James
+  _defaultBpm: 120
+  _defaultTimeSignature:
+    _numerator: 4
+    _denominator: 4

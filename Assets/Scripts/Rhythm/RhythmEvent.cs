@@ -1,20 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
 using Unity.VisualScripting.FullSerializer;
+using UnityEngine;
 
 namespace Rhythm
 {
     [Serializable]
+    public struct RhythmEventDuration
+    {
+        public bool HasDuration;
+        public float Seconds;
+
+        public RhythmEventDuration(bool has, float secs = 0)
+        {
+            HasDuration = has;
+            Seconds = secs;
+        }
+    }
+    
+    [Serializable]
     public class RhythmEvent
     {
         public float TimeSeconds => _timeSeconds;
-        public int TypeID => _typeID;
         public List<RhythmData> RhythmData => _rhythmData;
+        public float DurationSeconds => _duration.Seconds;
+        public bool HasDuration => _duration.HasDuration;
         
         private float _timeSeconds;
-        private List<RhythmData> _rhythmData;
-        private int _typeID;
-
+        private RhythmEventDuration _duration;
+        private List<RhythmData> _rhythmData; //metadata for this event
         public RhythmData GetData<T>()
         {
             foreach (RhythmData r in _rhythmData)
@@ -25,6 +39,33 @@ namespace Rhythm
                 }
             }
             return null;
+        }
+
+        public RhythmEvent(float s, float dur = 0)
+        {
+            _timeSeconds = s;
+            _rhythmData = new List<RhythmData>();
+            _duration = new RhythmEventDuration(dur <= float.Epsilon, dur);
+        }
+
+        public void SetTime(float s)
+        {
+            _timeSeconds = s;
+        }
+
+        public void SetDuration(float dur)
+        {
+            _duration = new RhythmEventDuration(dur <= float.Epsilon, dur);
+        }
+
+        public void AddData(RhythmData d)
+        {
+            _rhythmData.Add(d);
+        }
+        
+        public void RemoveData(RhythmData d)
+        {
+            _rhythmData.Remove(d);
         }
     }
 }
