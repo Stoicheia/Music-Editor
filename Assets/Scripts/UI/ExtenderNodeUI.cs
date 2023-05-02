@@ -6,6 +6,7 @@ namespace UI
     {
         public override void Select(SelectInfo info, Vector2 pos, bool special = false)
         {
+            Parent.Select(info, pos, special);
         }
 
         private Vector2 vecToParent = Vector2.zero;

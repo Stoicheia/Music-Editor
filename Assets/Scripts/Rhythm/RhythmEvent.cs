@@ -29,15 +29,16 @@ namespace Rhythm
         private float _timeSeconds;
         private RhythmEventDuration _duration;
         private List<RhythmData> _rhythmData; //metadata for this event
-        public RhythmData GetData<T>()
+        public RhythmData GetData(string propName)
         {
-            foreach (RhythmData r in _rhythmData)
+            foreach (var r in _rhythmData)
             {
-                if (r is T)
+                if (r.PropertyName == propName)
                 {
                     return r;
                 }
             }
+
             return null;
         }
 

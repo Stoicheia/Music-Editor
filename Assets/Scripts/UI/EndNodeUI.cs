@@ -8,7 +8,7 @@ namespace UI
     {
         public override void Select(SelectInfo info, Vector2 pos, bool special = false)
         {
-            
+            Parent.Select(info, pos, special);
         }
 
         public override void Click(SelectInfo info, Vector2 pos)
