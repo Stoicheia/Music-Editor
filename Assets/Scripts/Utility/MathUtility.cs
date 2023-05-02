@@ -11,5 +11,10 @@
         {
             return seconds * bpm / 60;
         }
+
+        public static float InverseLerpUnclamped(float left, float right, float value)
+        {
+            return (value - left) / (right - left);
+        }
     }
 }

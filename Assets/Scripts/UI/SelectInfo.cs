@@ -1,7 +1,12 @@
 ﻿namespace UI
 {
-    public class SelectInfo
+    public struct SelectInfo
     {
-        
+        public ISelectorInteractor Selected;
+
+        public SelectInfo(ISelectorInteractor s)
+        {
+            Selected = s;
+        }
     }
 }

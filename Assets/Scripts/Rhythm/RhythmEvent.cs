@@ -45,7 +45,7 @@ namespace Rhythm
         {
             _timeSeconds = s;
             _rhythmData = new List<RhythmData>();
-            _duration = new RhythmEventDuration(dur <= float.Epsilon, dur);
+            _duration = new RhythmEventDuration(dur > float.Epsilon, dur);
         }
 
         public void SetTime(float s)
@@ -55,9 +55,14 @@ namespace Rhythm
 
         public void SetDuration(float dur)
         {
-            _duration = new RhythmEventDuration(dur <= float.Epsilon, dur);
+            _duration = new RhythmEventDuration(dur > float.Epsilon, dur);
         }
 
+        public void SetEndTime(float s)
+        {
+            SetDuration(s - TimeSeconds);
+        }
+        
         public void AddData(RhythmData d)
         {
             _rhythmData.Add(d);
@@ -68,6 +73,14 @@ namespace Rhythm
             _rhythmData.Remove(d);
         }
 
+        public bool WithinRange(float left, float right)
+        {
+            float start = TimeSeconds;
+            float end = TimeSeconds + DurationSeconds;
+
+            return !((start < left && end < left) || (start > right && end > right));
+        }
+
         public bool Overlaps(RhythmEvent other, float error)
         {
             return Contains(other, error) || other.Contains(this, error);
@@ -76,8 +89,15 @@ namespace Rhythm
         private bool Contains(RhythmEvent other, float error)
         {
             float leftBound = TimeSeconds - error;
-            float rightBound = TimeSeconds + error;
+            float rightBound = TimeSeconds + DurationSeconds + error;
             return other.TimeSeconds >= leftBound && other.TimeSeconds <= rightBound;
+        }
+
+        public bool Contains(float other, float error)
+        {
+            float leftBound = TimeSeconds - error;
+            float rightBound = TimeSeconds + DurationSeconds + error;
+            return other >= leftBound && other <= rightBound;
         }
     }
 }

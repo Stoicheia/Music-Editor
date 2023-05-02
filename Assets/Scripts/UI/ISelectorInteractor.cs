@@ -10,4 +10,10 @@ namespace UI
         public void Place(SelectInfo info, Vector2 pos);
         public void RightClicked(SelectInfo info, Vector2 pos);
     }
+
+    public interface IHoverInteractor
+    {
+        public void MouseEnter(SelectInfo info);
+        public void MouseExit(SelectInfo info);
+    }
 }

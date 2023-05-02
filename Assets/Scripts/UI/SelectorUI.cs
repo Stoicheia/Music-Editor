@@ -39,7 +39,7 @@ namespace UI
         public void PlaceObject(ISelectorInteractor isl, Vector2 pos)
         {
             isl.Place(_currentSelectedInfo, pos);
-            _currentSelectedInfo = null;
+            _currentSelectedInfo = new SelectInfo(null);
             _currentSelectedObject = null;
         }
 
@@ -91,7 +91,7 @@ namespace UI
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            if(_currentSelectedInfo != null)
+            if(_currentSelectedInfo.Selected != null)
                 PlaceObject(_currentSelectedObject, MouseScreenPosition);   
         }
 
@@ -106,7 +106,7 @@ namespace UI
                 {
                     ISelectorInteractor interacted = r.gameObject.GetComponent<ISelectorInteractor>();
                     if (interacted == null) continue;
-                    ClickOnObject(interacted, new (), eventData.pointerCurrentRaycast.screenPosition);
+                    ClickOnObject(interacted, new SelectInfo(interacted), eventData.pointerCurrentRaycast.screenPosition);
                     break;
                 }
             }

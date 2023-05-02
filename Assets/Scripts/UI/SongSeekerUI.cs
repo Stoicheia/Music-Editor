@@ -11,10 +11,15 @@ namespace UI
     [RequireComponent(typeof(Slider))]
     public class SongSeekerUI : MonoBehaviour
     {
+        public float ScrollSpeedMultiplier { get; set; }
+        
         private Slider _slider;
         private AudioSource _audio;
 
+        [Header("Graphics")]
         [SerializeField] private TextMeshProUGUI _timeField;
+        [Header("Settings")] 
+        [SerializeField] private float _scrollSpeed;
         
 
         private void Awake()
@@ -29,8 +34,15 @@ namespace UI
                 _timeField.text = "";
                 return;
             }
+            
             _timeField.text = _audio.clip == null ? "0:00/0:00" : 
                 $"{StringUtility.SecondsPrettyString(_audio.time)}/{StringUtility.SecondsPrettyString(_audio.clip.length)}";
+            if (!Input.GetKey(KeyCode.LeftShift))
+            {
+                var requestedTime = _audio.time - Input.mouseScrollDelta.y * _scrollSpeed * ScrollSpeedMultiplier;
+                _audio.time = Mathf.Clamp(requestedTime, 0, _audio.clip.length);
+            }
+
             _slider.value = _audio.time / _audio.clip.length;
         }
 
@@ -57,6 +69,12 @@ namespace UI
             _audio.UnPause();
         }
 
+        public void TogglePause()
+        {
+            if(_audio.isPlaying) _audio.Pause();
+            else _audio.UnPause();
+        }
+
         public float SongTimeSeconds => _audio.time;
 
         public float SongLengthSeconds => _audio.clip.length;
@@ -64,6 +82,7 @@ namespace UI
         private void UpdateSongTime(float val)
         {
             var sliderVal = val / _slider.maxValue;
+            sliderVal = Mathf.Clamp(sliderVal, 0, _audio.clip.length);
             var time = sliderVal * _audio.clip.length;
             if (time > _audio.clip.length)
             {

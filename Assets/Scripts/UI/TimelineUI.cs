@@ -25,26 +25,37 @@ namespace UI
         [SerializeField] private bool _snapToGrid;
         [SerializeField] private bool _ghostEventEnabled;
         [SerializeField] private float _clickCooldown = 0.3f;
+        [SerializeField] private float _zoomSpeed = 0.3f;
+        [SerializeField] [Range(0.1f, 3)] private float _minZoomSeconds = 1f;
+        [SerializeField] [Range(10f, 120f)] private float _maxZoomSeconds = 1f;
         [Header("Graphics")]
         [SerializeField] private Image _timelinePanel;
         [SerializeField] private GameObject _thinGridlinePrefab;
         [SerializeField] private GameObject _thickGridlinePrefab;
+        [SerializeField] private GameObject _barNumberTextPrefab;
         [SerializeField] private GameObject _seekerPrefab;
         [SerializeField] private EventNodeUI _genericEventPrefab;
         [SerializeField] private GameObject _ghostEventPrefab;
-        [Header("Graphics Options")] 
-        [SerializeField] private float _stackThreshold = 0.001f;
-        [SerializeField] [Range(1, 10)] private int _stackLimit = 4;
-        [SerializeField] private float _stackExpand = 100;
+        [Header("Graphics Options")]
         [SerializeField] private float _seekerOffset = 100;
+        [SerializeField] private float _seekerHeight = 100;
+        [SerializeField] private float _nodeRadius = 100;
+        [SerializeField] private float _extenderHeight = 50;
+        [SerializeField] private float _dividerHeight = 250;
+        [SerializeField] private float _barNumberOffset = 100;
+        [SerializeField] private float _barNumberSize = 15;
         [Header("Advanced")] 
         [SerializeField] private RectTransform _dividerGraphicsRoot;
         [SerializeField] private RectTransform _eventGraphicsRoot;
+        [SerializeField] private RectTransform _connectorGraphicsRoot;
         [SerializeField] private RectTransform _foregroundGraphicsRoot;
+        [SerializeField] private RectTransform _barNumberGraphicsRoot;
         [SerializeField][Range(50, 1000)] private int _initialGraphicsCount = 100;
 
         private List<RectTransform> _thinGridlineObjects;
         private List<RectTransform> _thickGridlineObjects;
+        private List<RectTransform> _barNumberObjects;
+        private List<TextMeshProUGUI> _barNumberTextObjects;
         private List<EventNodeUI> _eventObjects;
         private RectTransform _ghostGraphic;
         private RectTransform _seekerGraphic;
@@ -53,7 +64,7 @@ namespace UI
 
         private float _leftTime;
         private float _rightTime;
-        private List<(float, int)> _subdivisionsAndOrders;
+        private List<(float, int, int)> _subdivisionsAndOrders;
 
         private Rect _panel;
         private Vector2 _panelLeft;
@@ -70,11 +81,18 @@ namespace UI
 
         private bool _isInitialised;
 
+        private void Awake()
+        {
+            EventNodeUI.ExtenderRoot = _connectorGraphicsRoot;
+        }
+
         public void Init()
         {
-            _subdivisionsAndOrders = new List<(float, int)>();
+            _subdivisionsAndOrders = new List<(float, int, int)>();
             _thickGridlineObjects = new List<RectTransform>();
             _thinGridlineObjects = new List<RectTransform>();
+            _barNumberObjects = new List<RectTransform>();
+            _barNumberTextObjects = new List<TextMeshProUGUI>();
             _eventObjects = new List<EventNodeUI>();
             _eventToNode = new Dictionary<RhythmEvent, EventNodeUI>();
             
@@ -84,8 +102,15 @@ namespace UI
                 _thinGridlineObjects.Add(thinLineInstance);
                 RectTransform thickLineInstance = Instantiate(_thickGridlinePrefab, _dividerGraphicsRoot).GetComponent<RectTransform>();
                 _thickGridlineObjects.Add(thickLineInstance);
+                RectTransform barNumberInstance = Instantiate(_barNumberTextPrefab, _barNumberGraphicsRoot)
+                    .GetComponent<RectTransform>();
+                _barNumberObjects.Add(barNumberInstance);
+                _barNumberTextObjects.Add(barNumberInstance.GetComponent<TextMeshProUGUI>());
+
                 EventNodeUI eventInstance = Instantiate(_genericEventPrefab, _eventGraphicsRoot).GetComponent<EventNodeUI>();
                 _eventObjects.Add(eventInstance);
+                eventInstance.ReferenceTransform = _timelinePanel.rectTransform;
+                eventInstance.ParentUI = this;
             }
 
             _eventNodePool = new Queue<EventNodeUI>(_eventObjects);
@@ -98,6 +123,7 @@ namespace UI
                 enode.OnClick += HandleClickEventNode;
                 enode.OnRightClick += HandleRightClickEventNode;
                 enode.OnMove += HandleMoveEventNode;
+                enode.OnRequestExtension += HandleExtendEventNode;
             }
             
             RecalculateSubdivisions();
@@ -111,44 +137,40 @@ namespace UI
             _panelLeft = new Vector2(_panel.xMin, _panel.center.y);
             _panelRight = new Vector2(_panel.xMax, _panel.center.y);
             
+            // Find the start of the focus range
+            int subdivIndex = 0;
+            while (subdivIndex < _subdivisionsAndOrders.Count && _subdivisionsAndOrders[subdivIndex].Item1 < _leftTime)
+            {
+                subdivIndex++;
+            }
+            
+            // Update graphics
             UpdateTimelinePosition();
-            UpdateTimelineGridGraphics();
+            UpdateTimelineGridGraphics(subdivIndex);
+            UpdateBarNumberGraphics(subdivIndex);
             UpdateTimelineEventGraphics();
             if(_ghostEventEnabled && Toolbar.ActiveOption == ToolbarOption.Draw) UpdateGhostGraphics();
             else _ghostGraphic.gameObject.SetActive(false);
 
+            // Update state and read input
+            SongSeeker.ScrollSpeedMultiplier = _focusSeconds;
+
             _clickTimer -= Time.deltaTime;
+
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                _focusSeconds *= (1 - _zoomSpeed * Input.mouseScrollDelta.y);
+                _focusSeconds = Mathf.Clamp(_focusSeconds, _minZoomSeconds, _maxZoomSeconds);
+            }
         }
         
-        public void PlaceNew(float time)
+        public EventNodeUI PlaceNew(float time, float vertical)
         {
             RhythmEvent newEvent = new RhythmEvent(time);
             Engine.AddEvent(newEvent);
             _eventToNode[newEvent] = _eventNodePool.Dequeue();
-        }
-
-        private void UpdateGhostGraphics()
-        {
-            Vector2 anchoredMousePos = _timelinePanel.transform.InverseTransformPoint(Selector.MouseScreenPosition);
-            if (!_panel.Contains(anchoredMousePos))
-            {
-                _ghostGraphic.gameObject.SetActive(false);
-                _ghostTime = -1000;
-                return;
-            }
-            _ghostGraphic.gameObject.SetActive(true);
-            float relPos = Mathf.InverseLerp(_panelLeft.x, _panelRight.x, anchoredMousePos.x);
-            float songTime = Mathf.Lerp(_leftTime, _rightTime, relPos);
-            if (_snapToGrid) songTime = Snap(songTime);
-            _ghostTime = songTime;
-            float newRelPos = Mathf.InverseLerp(_leftTime, _rightTime, songTime);
-
-            float x = Vector2.Lerp(_panelLeft, _panelRight, newRelPos).x;
-
-            int stacks = 1 + Engine.Events.Count(x => Mathf.Abs(x.TimeSeconds - _ghostTime) <= _stackThreshold);
-            float y = Mathf.LerpUnclamped(_panel.yMin - _stackExpand, _panel.yMax + _stackExpand, (float)stacks/(stacks + 1));
-            Vector2 newPos = new Vector2(x, y);
-            _ghostGraphic.anchoredPosition = newPos;
+            _eventToNode[newEvent].Vertical = vertical;
+            return _eventToNode[newEvent];
         }
 
         private void UpdateTimelinePosition()
@@ -160,6 +182,7 @@ namespace UI
 
             float t = Mathf.InverseLerp(_leftTime, _rightTime, centerSeconds);
             _seekerGraphic.anchoredPosition = Vector2.Lerp(_panelLeft, _panelRight, t) + Vector2.up * _seekerOffset;
+            _seekerGraphic.sizeDelta = new Vector2(_seekerGraphic.sizeDelta.x, _seekerHeight);
         }
 
         private void RecalculateSubdivisions()
@@ -167,24 +190,37 @@ namespace UI
             _subdivisionsAndOrders.Clear();
 
             float t = Offset;
+            int divCount = 0;
             int beatCount = 0;
+            int barCount = 1;
             while (t < SongSeeker.SongLengthSeconds)
             {
-                _subdivisionsAndOrders.Add((t, beatCount == 0 ? 1 : 0));
-                t += MathUtility.BeatsToSeconds(1, Bpm);
-                beatCount++;
-                beatCount %= TimeSignature.BeatsInABar();
+                int order = -1;
+                // Update time in terms of beats
+                divCount++;
+                if (divCount == Toolbar.Subdivision)
+                {
+                    divCount = 0;
+                    beatCount++;
+                    order = 0;
+                }
+
+                if (beatCount == TimeSignature.BeatsInABar())
+                {
+                    beatCount = 0;
+                    barCount++;
+                    order = 1;
+                }
+
+                _subdivisionsAndOrders.Add((t, order, barCount));
+                t += MathUtility.BeatsToSeconds(1, Bpm)/Toolbar.Subdivision;
+                
             }
         }
 
-        private void UpdateTimelineGridGraphics()
+        private void UpdateTimelineGridGraphics(int fromIndex)
         {
-            // Find the start of the focus range
-            int subdivIndex = 0;
-            while (subdivIndex < _subdivisionsAndOrders.Count && _subdivisionsAndOrders[subdivIndex].Item1 < _leftTime)
-            {
-                subdivIndex++;
-            }
+            var subdivIndex = Math.Max(0, fromIndex - 1);
 
             // Draw the gridlines within the focus range
             int thinLineIndex = 0;
@@ -192,20 +228,21 @@ namespace UI
             
             while (subdivIndex < _subdivisionsAndOrders.Count && _subdivisionsAndOrders[subdivIndex].Item1 < _rightTime)
             {
-                float t = Mathf.InverseLerp(_leftTime, _rightTime, _subdivisionsAndOrders[subdivIndex].Item1);
-                Vector2 timelinePos = Vector2.Lerp(_panelLeft, _panelRight, t);
+                float t = MathUtility.InverseLerpUnclamped(_leftTime, _rightTime, _subdivisionsAndOrders[subdivIndex].Item1);
+                Vector2 timelinePos = Vector2.LerpUnclamped(_panelLeft, _panelRight, t);
+                RectTransform lineObj;
                 if (_subdivisionsAndOrders[subdivIndex].Item2 <= 0)
                 {
-                    var lineObj = _thinGridlineObjects[thinLineIndex++];
-                    lineObj.anchoredPosition = timelinePos;
-                    lineObj.gameObject.SetActive(true);
+                    lineObj = _thinGridlineObjects[thinLineIndex++];
                 }
                 else
                 {
-                    var lineObj = _thickGridlineObjects[thickLineIndex++];
-                    lineObj.anchoredPosition = timelinePos;
-                    lineObj.gameObject.SetActive(true);                
+                    lineObj = _thickGridlineObjects[thickLineIndex++];
                 }
+                
+                lineObj.anchoredPosition = timelinePos;
+                lineObj.gameObject.SetActive(true);
+                lineObj.sizeDelta = new Vector2(lineObj.sizeDelta.x, _dividerHeight);
 
                 subdivIndex++;
             }
@@ -222,54 +259,102 @@ namespace UI
             }
         }
 
-        private void UpdateTimelineEventGraphics() //TODO: Draw durations, update stacking with durations
+        private void UpdateBarNumberGraphics(int fromIndex)
+        {
+            var subdivIndex = Math.Max(0, fromIndex - 1);
+
+            int barTextIndex = 0;
+            
+            // Disable all of the bar numbers
+            for (int i = 0; i < _initialGraphicsCount; i++)
+            {
+                _barNumberObjects[i].gameObject.SetActive(false);
+            }
+            
+            // Draw bar numbers within range
+            while (subdivIndex < _subdivisionsAndOrders.Count && _subdivisionsAndOrders[subdivIndex].Item1 < _rightTime)
+            {
+                float t = MathUtility.InverseLerpUnclamped(_leftTime, _rightTime, _subdivisionsAndOrders[subdivIndex].Item1);
+                Vector2 timelinePos = Vector2.LerpUnclamped(_panelLeft, _panelRight, t) + Vector2.up * _panel.size.y/2;
+                RectTransform barTextObj = _barNumberObjects[barTextIndex];
+                TextMeshProUGUI barText = _barNumberTextObjects[barTextIndex++];
+                if (_subdivisionsAndOrders[subdivIndex].Item2 > 0)
+                {
+                    barTextObj.anchoredPosition = timelinePos + Vector2.up * _barNumberOffset;
+                    barTextObj.gameObject.SetActive(true);
+                    barText.fontSize = _barNumberSize;
+                    barText.text = _subdivisionsAndOrders[subdivIndex].Item3.ToString();
+                }
+                else
+                {
+                    barTextObj.gameObject.SetActive(false);
+                }
+                
+                subdivIndex++;
+            }
+        }
+
+        private void UpdateTimelineEventGraphics()
         {
             var events = Engine.Events; // assume sorted by time
-
+            
             // Place event graphics
             for (int i = 0; i < events.Count; i++)
             {
                 RhythmEvent e = events[i];
-                if (e.TimeSeconds < _leftTime || e.TimeSeconds > _rightTime) continue;
                 var eventGraphic = _eventToNode[e];
-                float t = Mathf.InverseLerp(_leftTime, _rightTime, e.TimeSeconds);
-                float x = Vector2.Lerp(_panelLeft, _panelRight, t).x;
                 
-                // Calculate stack from other events at same time
-                int stacksBeforeMe = 0;
-                for (int j = i-1; j >= 0 && Mathf.Abs(events[j].TimeSeconds - e.TimeSeconds) <= _stackThreshold; j--)
+                if (!e.WithinRange(_leftTime - 1, _rightTime + 1))
                 {
-                    stacksBeforeMe++;
+                    eventGraphic.DisableGraphics();
+                    continue;
                 }
 
-                int stacksAfterMe = 0;
-                for (int j = i+1; j < events.Count && Mathf.Abs(events[j].TimeSeconds - e.TimeSeconds) <= _stackThreshold; j++)
-                {
-                    stacksAfterMe++;
-                }
-
-                if (Mathf.Abs(_ghostTime - e.TimeSeconds) <= _stackThreshold) stacksAfterMe++;
+                float vertical = eventGraphic.Vertical;
                 
-                int stackOrder = stacksBeforeMe + 1;
-                int stackTotal = stackOrder + stacksAfterMe;
-
-                float y = Mathf.LerpUnclamped(_panel.yMin - _stackExpand, _panel.yMax + _stackExpand, (float)stackOrder/(stackTotal + 1));
-                eventGraphic.rectTransform.anchoredPosition = new Vector2(x, y); // TODO: Replace this part with function in EventNode.cs
+                eventGraphic.Event = e;
+                eventGraphic.Draw(_panel, _leftTime, _rightTime, vertical);
                 eventGraphic.gameObject.SetActive(true);
 
-                eventGraphic.Event = e;
+                eventGraphic.rectTransform.sizeDelta = new Vector2(_nodeRadius * 2, _nodeRadius * 2);
+                eventGraphic.ExtenderHeight = _extenderHeight;
+                eventGraphic.NodeRadius = _nodeRadius;
             }
 
             // Disable unused event graphics
             foreach(var e in _eventNodePool)
             {
-                e.gameObject.SetActive(false);
+                e.DisableGraphics();
             }
+        }
+        
+        private void UpdateGhostGraphics()
+        {
+            Vector2 anchoredMousePos = _timelinePanel.transform.InverseTransformPoint(Selector.MouseScreenPosition);
+            if (!_panel.Contains(anchoredMousePos) || _activeNode != null)
+            {
+                _ghostGraphic.gameObject.SetActive(false);
+                _ghostTime = -1000;
+                return;
+            }
+            _ghostGraphic.gameObject.SetActive(true);
+            float relPos = Mathf.InverseLerp(_panelLeft.x, _panelRight.x, anchoredMousePos.x);
+            float songTime = Mathf.Lerp(_leftTime, _rightTime, relPos);
+            if (_snapToGrid) songTime = Snap(songTime);
+            _ghostTime = songTime;
+            float newRelPos = Mathf.InverseLerp(_leftTime, _rightTime, songTime);
+
+            float x = Vector2.Lerp(_panelLeft, _panelRight, newRelPos).x;
+            float y = anchoredMousePos.y;
+            
+            Vector2 newPos = new Vector2(x, y);
+            _ghostGraphic.anchoredPosition = newPos;
+            _ghostGraphic.sizeDelta = new Vector2(_nodeRadius * 2, _nodeRadius * 2);
         }
 
         private float Snap(float time)
         {
-            // binary search
+            // Binary search to find nearest time on the beat
             var times = _subdivisionsAndOrders.Select(x => x.Item1).ToList();
             int index = 0;
             for (int k = times.Count / 2; k > 0; k /= 2)
@@ -310,16 +395,29 @@ namespace UI
             float relPos = Mathf.InverseLerp(_panelLeft.x, _panelRight.x, anchoredPos.x);
             float time = Mathf.Lerp(_leftTime, _rightTime, relPos);
             node.Event.SetTime(_snapToGrid ? Snap(time) : time);
+            node.Vertical = Mathf.InverseLerp(_panel.yMin, _panel.yMax, anchoredPos.y);
             
             Engine.UpdateEvents();
         }
 
         public void ClearAllEvents()
         {
+            foreach (var node in _eventToNode.Values)
+            {
+                _eventNodePool.Enqueue(node);
+            }
+            
+            _eventToNode.Clear();
             Engine.Events.Clear();
         }
 
         public void Select(SelectInfo info, Vector2 pos, bool empty = false)
+        {
+            
+        }
+
+        private EventNodeUI _activeNode;
+        public void Click(SelectInfo info, Vector2 pos)
         {
             if (Toolbar.ActiveOption != ToolbarOption.Draw) return;
             
@@ -329,29 +427,40 @@ namespace UI
             {
                 float relPos = Mathf.InverseLerp(_panelLeft.x, _panelRight.x, anchoredPos.x);
                 float time = Mathf.Lerp(_leftTime, _rightTime, relPos);
-                PlaceNew(_snapToGrid ? Snap(time) : time);
+                float vertical = Mathf.InverseLerp(_panel.yMin, _panel.yMax, anchoredPos.y);
+                _activeNode = PlaceNew(_snapToGrid ? Snap(time) : time, vertical);
                 _clickTimer = _clickCooldown;
             }
         }
 
-        public void Click(SelectInfo info, Vector2 pos)
-        {
-            
-        }
-
         public void Move(SelectInfo info, Vector2 pos)
         {
+            if (Toolbar.ActiveOption != ToolbarOption.Draw) return;
+            if (_activeNode == null) return;
             
+            HandleExtendEventNode(_activeNode, pos);
         }
 
         public void Place(SelectInfo info, Vector2 pos)
         {
-            
+            _activeNode = null;
         }
 
         public void RightClicked(SelectInfo info, Vector2 pos)
         {
             
+        }
+
+        public void HandleExtendEventNode(EventNodeUI node, Vector2 pos)
+        {
+            Vector2 anchoredPos = _timelinePanel.transform.InverseTransformPoint(pos);
+            
+            if (!_panel.Contains(anchoredPos)) return;
+            
+            float relPos = Mathf.InverseLerp(_panelLeft.x, _panelRight.x, anchoredPos.x);
+            float time = Mathf.Lerp(_leftTime, _rightTime, relPos);
+            float boundedTime = Mathf.Max(node.Event.TimeSeconds, time);
+            node.Event.SetEndTime(_snapToGrid ? Snap(boundedTime) : boundedTime);
         }
     }
 }

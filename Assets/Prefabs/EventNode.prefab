@@ -89,5 +89,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc5ea30e7421417385ab7f5db708f85f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _defaultSprite: {r: 0.8207547, g: 0.5389106, b: 0.5389106, a: 1}
-  _selectedSprite: {r: 0.8679245, g: 0.8679245, b: 0.20961201, a: 1}
+  NormalSprite: {fileID: 21300000, guid: 11cc16ff70addc64aaea6922a9499389, type: 3}
+  HoveredSprite: {fileID: 21300000, guid: 31baa6a112d0a6f4290bbe2b0248fe0b, type: 3}
+  SelectedSprite: {fileID: 21300000, guid: 5749e563f4c494e42bdcaa9fc94bc871, type: 3}
+  _extenderPrefab: {fileID: 6511015996485983345, guid: 2856c51bfbeecbc42bd056055c4cda96, type: 3}
+  _endNodePrefab: {fileID: 387634472655577903, guid: ee6b03ad69a75a3488c9e9f594857af4, type: 3}
