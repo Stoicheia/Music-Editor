@@ -45,6 +45,7 @@ namespace UI
         [SerializeField] private float _barNumberOffset = 100;
         [SerializeField] private float _barNumberSize = 15;
         [Header("Advanced")] 
+        [SerializeField] private TimelineFlagsDrawerUI _flagsDrawer;
         [SerializeField] private RectTransform _dividerGraphicsRoot;
         [SerializeField] private RectTransform _eventGraphicsRoot;
         [SerializeField] private RectTransform _connectorGraphicsRoot;
@@ -76,14 +77,15 @@ namespace UI
         private Queue<EventNodeUI> _eventNodePool;
 
         private float Offset => 0;
-        private float Bpm => LevelEditor.CurrentBpm;
-        private TimeSignature TimeSignature => LevelEditor.CurrentTimeSignature;
+        private float Bpm => Engine.GetBpm(SongSeeker.SongTimeSeconds);
+        private TimeSignature TimeSignature => Engine.GetTimeSignature(SongSeeker.SongTimeSeconds);
 
         private bool _isInitialised;
 
         private void Awake()
         {
             EventNodeUI.ExtenderRoot = _connectorGraphicsRoot;
+            _flagsDrawer.Timeline = this;
         }
 
         public void Init()
@@ -125,10 +127,15 @@ namespace UI
                 enode.OnMove += HandleMoveEventNode;
                 enode.OnRequestExtension += HandleExtendEventNode;
             }
-            
+
+            Toolbar.OnRequestBpmFlag += CreateBpmChangeFlag;
+            Toolbar.OnRequestTimeSignatureFlag += CreateTimeSignatureChangeFlag;
+
             RecalculateSubdivisions();
             _isInitialised = true;
         }
+
+       
 
         private void Update()
         {
@@ -144,11 +151,15 @@ namespace UI
                 subdivIndex++;
             }
             
+            RecalculateSubdivisions();
             // Update graphics
             UpdateTimelinePosition();
             UpdateTimelineGridGraphics(subdivIndex);
             UpdateBarNumberGraphics(subdivIndex);
             UpdateTimelineEventGraphics();
+            
+            if(_flagsDrawer != null)
+                _flagsDrawer.Draw(Engine, _panel, _leftTime, _rightTime);
             if(_ghostEventEnabled && Toolbar.ActiveOption == ToolbarOption.Draw) UpdateGhostGraphics();
             else _ghostGraphic.gameObject.SetActive(false);
 
@@ -172,6 +183,17 @@ namespace UI
             _eventToNode[newEvent].Vertical = vertical;
             return _eventToNode[newEvent];
         }
+        
+        public void ClearAllEvents()
+        {
+            foreach (var node in _eventToNode.Values)
+            {
+                _eventNodePool.Enqueue(node);
+            }
+            
+            _eventToNode.Clear();
+            Engine.ClearLevelData();
+        }
 
         private void UpdateTimelinePosition()
         {
@@ -188,13 +210,40 @@ namespace UI
         private void RecalculateSubdivisions()
         {
             _subdivisionsAndOrders.Clear();
+            var bpmChanges = Engine.BpmChanges;
+            var timeSigChanges = Engine.TimeSigChanges;
+
+            int bpmIndex = 0;
+            int timeSigIndex = 0;
+            float bpm = bpmChanges[bpmIndex++].Bpm;
+            Rhythm.TimeSignature timeSig = timeSigChanges[timeSigIndex++].TimeSignature;
+
+            BpmChange nextBpmChange = bpmChanges[bpmIndex];
+            TimeSignatureChange nextSigChange = timeSigChanges[timeSigIndex];
 
             float t = Offset;
             int divCount = 0;
             int beatCount = 0;
             int barCount = 1;
+            
             while (t < SongSeeker.SongLengthSeconds)
             {
+                if (nextBpmChange != null && t >= nextBpmChange.Time)
+                {
+                    divCount = 0;
+                    beatCount = 0;
+                    bpm = nextBpmChange.Bpm;
+                    nextBpmChange = bpmIndex < bpmChanges.Count ? bpmChanges[bpmIndex++] : null;
+                }
+
+                if (nextSigChange != null && t >= nextSigChange.Time)
+                {
+                    divCount = 0;
+                    beatCount = 0;
+                    timeSig = nextSigChange.TimeSignature;
+                    nextSigChange = timeSigIndex < timeSigChanges.Count ? timeSigChanges[timeSigIndex++] : null;
+                }
+                
                 int order = -1;
                 // Update time in terms of beats
                 divCount++;
@@ -205,7 +254,7 @@ namespace UI
                     order = 0;
                 }
 
-                if (beatCount == TimeSignature.BeatsInABar())
+                if (beatCount == timeSig.BeatsInABar())
                 {
                     beatCount = 0;
                     barCount++;
@@ -213,8 +262,7 @@ namespace UI
                 }
 
                 _subdivisionsAndOrders.Add((t, order, barCount));
-                t += MathUtility.BeatsToSeconds(1, Bpm)/Toolbar.Subdivision;
-                
+                t += MathUtility.BeatsToSeconds(1, bpm)/Toolbar.Subdivision;
             }
         }
 
@@ -399,16 +447,15 @@ namespace UI
             
             Engine.UpdateEvents();
         }
-
-        public void ClearAllEvents()
+        
+        private void CreateBpmChangeFlag()
         {
-            foreach (var node in _eventToNode.Values)
-            {
-                _eventNodePool.Enqueue(node);
-            }
-            
-            _eventToNode.Clear();
-            Engine.Events.Clear();
+            Engine.BpmChanges.Add(new BpmChange(SongSeeker.SongTimeSeconds, Bpm));
+        }
+
+        private void CreateTimeSignatureChangeFlag()
+        {
+            Engine.TimeSigChanges.Add(new TimeSignatureChange(SongSeeker.SongTimeSeconds, TimeSignature));
         }
 
         public void Select(SelectInfo info, Vector2 pos, bool empty = false)
