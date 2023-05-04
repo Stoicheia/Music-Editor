@@ -14,6 +14,7 @@ namespace UI
     {
         public event Action OnRequestBpmFlag;
         public event Action OnRequestTimeSignatureFlag;
+        public event Action<bool> OnToggleSeekerState;
         
         public ToolbarOption ActiveOption => _activeOption;
         public int Subdivision => _subdivision;
@@ -22,7 +23,8 @@ namespace UI
         [SerializeField] private List<ToolbarButtonUI> _buttons;
         [SerializeField] private Button _bpmFlagButton;
         [SerializeField] private Button _timeSigFlagButton;
-        
+        [SerializeField] private ToolbarToggle _seekerToggle;
+
         [Header("Options")]
         [SerializeField] private ToolbarOption _defaultOption;
         [SerializeField] private int _subdivision = 1;
@@ -38,8 +40,14 @@ namespace UI
 
             _bpmFlagButton.onClick.AddListener(RequestBpmFlag);
             _timeSigFlagButton.onClick.AddListener(RequestTimeSignatureFlag);
+            _seekerToggle.OnToggle += HandleSeekerToggle;
             
             ChangeOption(_defaultOption);
+        }
+
+        private void HandleSeekerToggle(bool state)
+        {
+            OnToggleSeekerState?.Invoke(state);
         }
 
         private void ChangeOption(ToolbarOption option)
@@ -51,6 +59,11 @@ namespace UI
                 else b.SetGraphicInactive();
             }
         }
+        
+        private void HandleSeekerToggle()
+        {
+            
+        }
 
         public void RequestBpmFlag()
         {
@@ -60,6 +73,11 @@ namespace UI
         public void RequestTimeSignatureFlag()
         {
             OnRequestTimeSignatureFlag?.Invoke();
+        }
+
+        public void ToggleSeeker(bool s)
+        {
+            _seekerToggle.State = s;
         }
     }
 }

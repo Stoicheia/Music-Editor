@@ -18,9 +18,7 @@ namespace UI
 
         [Header("Graphics")]
         [SerializeField] private TextMeshProUGUI _timeField;
-        [Header("Settings")] 
-        [SerializeField] private float _scrollSpeed;
-        
+
 
         private void Awake()
         {
@@ -37,13 +35,14 @@ namespace UI
             
             _timeField.text = _audio.clip == null ? "0:00/0:00" : 
                 $"{StringUtility.SecondsPrettyString(_audio.time)}/{StringUtility.SecondsPrettyString(_audio.clip.length)}";
-            if (!Input.GetKey(KeyCode.LeftShift))
-            {
-                var requestedTime = _audio.time - Input.mouseScrollDelta.y * _scrollSpeed * ScrollSpeedMultiplier;
-                _audio.time = Mathf.Clamp(requestedTime, 0, _audio.clip.length);
-            }
+            
 
             _slider.value = _audio.time / _audio.clip.length;
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                TogglePause();
+            }
         }
 
         public void InitWithAudioSource(EditorEngine source)
@@ -90,6 +89,11 @@ namespace UI
                 return;
             }
             _audio.time = time;
+        }
+
+        public void Scroll(float s)
+        {
+            UpdateSongTime(_audio.time + s);
         }
     }
 }

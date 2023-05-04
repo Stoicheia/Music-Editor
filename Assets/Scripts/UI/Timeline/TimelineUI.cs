@@ -28,12 +28,14 @@ namespace UI
         [SerializeField] private float _zoomSpeed = 0.3f;
         [SerializeField] [Range(0.1f, 3)] private float _minZoomSeconds = 1f;
         [SerializeField] [Range(10f, 120f)] private float _maxZoomSeconds = 1f;
+        [SerializeField] [Range(0.1f, 100f)] private float _scrollSpeed = 1f;
+        [SerializeField] [Range(0.1f, 100f)] private float _songScrollSpeed = 1f;
+        [SerializeField] private bool _lockSeeker = true;
         [Header("Graphics")]
         [SerializeField] private Image _timelinePanel;
         [SerializeField] private GameObject _thinGridlinePrefab;
         [SerializeField] private GameObject _thickGridlinePrefab;
-        [SerializeField] private GameObject _barNumberTextPrefab;
-        [SerializeField] private GameObject _seekerPrefab;
+        [SerializeField] private TimelineSeeker _seekerPrefab;
         [SerializeField] private EventNodeUI _genericEventPrefab;
         [SerializeField] private GameObject _ghostEventPrefab;
         [Header("Graphics Options")]
@@ -42,24 +44,21 @@ namespace UI
         [SerializeField] private float _nodeRadius = 100;
         [SerializeField] private float _extenderHeight = 50;
         [SerializeField] private float _dividerHeight = 250;
-        [SerializeField] private float _barNumberOffset = 100;
-        [SerializeField] private float _barNumberSize = 15;
+        [Header("Drawers")] 
+        [SerializeField] private BarNumberDrawerUI _barNumberDrawer;
         [Header("Advanced")] 
         [SerializeField] private TimelineFlagsDrawerUI _flagsDrawer;
         [SerializeField] private RectTransform _dividerGraphicsRoot;
         [SerializeField] private RectTransform _eventGraphicsRoot;
         [SerializeField] private RectTransform _connectorGraphicsRoot;
         [SerializeField] private RectTransform _foregroundGraphicsRoot;
-        [SerializeField] private RectTransform _barNumberGraphicsRoot;
         [SerializeField][Range(50, 1000)] private int _initialGraphicsCount = 100;
 
         private List<RectTransform> _thinGridlineObjects;
         private List<RectTransform> _thickGridlineObjects;
-        private List<RectTransform> _barNumberObjects;
-        private List<TextMeshProUGUI> _barNumberTextObjects;
         private List<EventNodeUI> _eventObjects;
         private RectTransform _ghostGraphic;
-        private RectTransform _seekerGraphic;
+        private TimelineSeeker _seekerGraphic;
 
         private float _ghostTime;
 
@@ -93,10 +92,11 @@ namespace UI
             _subdivisionsAndOrders = new List<(float, int, int)>();
             _thickGridlineObjects = new List<RectTransform>();
             _thinGridlineObjects = new List<RectTransform>();
-            _barNumberObjects = new List<RectTransform>();
-            _barNumberTextObjects = new List<TextMeshProUGUI>();
             _eventObjects = new List<EventNodeUI>();
             _eventToNode = new Dictionary<RhythmEvent, EventNodeUI>();
+            
+            _barNumberDrawer.Init(this, Engine);
+            _flagsDrawer.Init(this, Engine);
             
             for (int i = 0; i < _initialGraphicsCount; i++)
             {
@@ -104,10 +104,6 @@ namespace UI
                 _thinGridlineObjects.Add(thinLineInstance);
                 RectTransform thickLineInstance = Instantiate(_thickGridlinePrefab, _dividerGraphicsRoot).GetComponent<RectTransform>();
                 _thickGridlineObjects.Add(thickLineInstance);
-                RectTransform barNumberInstance = Instantiate(_barNumberTextPrefab, _barNumberGraphicsRoot)
-                    .GetComponent<RectTransform>();
-                _barNumberObjects.Add(barNumberInstance);
-                _barNumberTextObjects.Add(barNumberInstance.GetComponent<TextMeshProUGUI>());
 
                 EventNodeUI eventInstance = Instantiate(_genericEventPrefab, _eventGraphicsRoot).GetComponent<EventNodeUI>();
                 _eventObjects.Add(eventInstance);
@@ -118,7 +114,8 @@ namespace UI
             _eventNodePool = new Queue<EventNodeUI>(_eventObjects);
 
             _ghostGraphic = Instantiate(_ghostEventPrefab, _eventGraphicsRoot).GetComponent<RectTransform>();
-            _seekerGraphic = Instantiate(_seekerPrefab, _foregroundGraphicsRoot).GetComponent<RectTransform>();
+            _seekerGraphic = Instantiate(_seekerPrefab, _foregroundGraphicsRoot);
+            _seekerGraphic.Audio = SongSeeker;
 
             foreach (var enode in _eventObjects)
             {
@@ -130,12 +127,12 @@ namespace UI
 
             Toolbar.OnRequestBpmFlag += CreateBpmChangeFlag;
             Toolbar.OnRequestTimeSignatureFlag += CreateTimeSignatureChangeFlag;
+            Toolbar.OnToggleSeekerState += ToggleSeekerLock;
 
             RecalculateSubdivisions();
             _isInitialised = true;
         }
 
-       
 
         private void Update()
         {
@@ -155,7 +152,8 @@ namespace UI
             // Update graphics
             UpdateTimelinePosition();
             UpdateTimelineGridGraphics(subdivIndex);
-            UpdateBarNumberGraphics(subdivIndex);
+            _barNumberDrawer.UpdateSubdivisions(_subdivisionsAndOrders);
+            _barNumberDrawer.Draw(Engine, _panel, _leftTime, _rightTime, subdivIndex);
             UpdateTimelineEventGraphics();
             
             if(_flagsDrawer != null)
@@ -173,14 +171,25 @@ namespace UI
                 _focusSeconds *= (1 - _zoomSpeed * Input.mouseScrollDelta.y);
                 _focusSeconds = Mathf.Clamp(_focusSeconds, _minZoomSeconds, _maxZoomSeconds);
             }
+
+            else
+            {
+                float moveBy = -_scrollSpeed * Input.mouseScrollDelta.y;
+                if (!_lockSeeker && _rightTime + moveBy > 0)
+                {
+                    _leftTime += moveBy;
+                    _rightTime += moveBy;
+                }
+            }
         }
         
-        public EventNodeUI PlaceNew(float time, float vertical)
+        private EventNodeUI PlaceNew(float time, float vertical)
         {
             RhythmEvent newEvent = new RhythmEvent(time);
             Engine.AddEvent(newEvent);
             _eventToNode[newEvent] = _eventNodePool.Dequeue();
             _eventToNode[newEvent].Vertical = vertical;
+            _eventToNode[newEvent].Event = newEvent;
             return _eventToNode[newEvent];
         }
         
@@ -199,12 +208,14 @@ namespace UI
         {
             float centerSeconds = SongSeeker.SongTimeSeconds;
             float maxTime = SongSeeker.SongLengthSeconds;
-            _leftTime = Mathf.Min(maxTime - _focusSeconds, centerSeconds - _focusSeconds/2);
-            _rightTime = Mathf.Min(maxTime, centerSeconds + _focusSeconds/2);
 
-            float t = Mathf.InverseLerp(_leftTime, _rightTime, centerSeconds);
-            _seekerGraphic.anchoredPosition = Vector2.Lerp(_panelLeft, _panelRight, t) + Vector2.up * _seekerOffset;
-            _seekerGraphic.sizeDelta = new Vector2(_seekerGraphic.sizeDelta.x, _seekerHeight);
+            if (_lockSeeker)
+            {
+                _leftTime = Mathf.Min(maxTime - _focusSeconds, centerSeconds - _focusSeconds / 2);
+                _rightTime = Mathf.Min(maxTime, centerSeconds + _focusSeconds / 2);
+            }
+
+            _seekerGraphic.Draw( _panel, _leftTime, _rightTime, centerSeconds, _seekerHeight, _seekerOffset);
         }
 
         private void RecalculateSubdivisions()
@@ -218,51 +229,40 @@ namespace UI
             float bpm = bpmChanges[bpmIndex++].Bpm;
             Rhythm.TimeSignature timeSig = timeSigChanges[timeSigIndex++].TimeSignature;
 
-            BpmChange nextBpmChange = bpmChanges[bpmIndex];
-            TimeSignatureChange nextSigChange = timeSigChanges[timeSigIndex];
+            BpmChange nextBpmChange = bpmIndex < bpmChanges.Count ? bpmChanges[bpmIndex] : null;
+            TimeSignatureChange nextSigChange = timeSigIndex < timeSigChanges.Count ? timeSigChanges[timeSigIndex] : null;
 
             float t = Offset;
-            int divCount = 0;
-            int beatCount = 0;
-            int barCount = 1;
+            
+            BarBeatSubdiv bbs = BarBeatSubdiv.Beginning(timeSig.BeatsInABar());
             
             while (t < SongSeeker.SongLengthSeconds)
             {
-                if (nextBpmChange != null && t >= nextBpmChange.Time)
-                {
-                    divCount = 0;
-                    beatCount = 0;
-                    bpm = nextBpmChange.Bpm;
-                    nextBpmChange = bpmIndex < bpmChanges.Count ? bpmChanges[bpmIndex++] : null;
-                }
-
                 if (nextSigChange != null && t >= nextSigChange.Time)
                 {
-                    divCount = 0;
-                    beatCount = 0;
+                    t = nextSigChange.Time;
                     timeSig = nextSigChange.TimeSignature;
-                    nextSigChange = timeSigIndex < timeSigChanges.Count ? timeSigChanges[timeSigIndex++] : null;
+                    nextSigChange = timeSigIndex < timeSigChanges.Count - 1 ? timeSigChanges[++timeSigIndex] : null;
+                    bbs = bbs.ChangeBeatsPerBar(timeSig.BeatsInABar());
+                    bbs = bbs.NextBar();
                 }
                 
-                int order = -1;
+                if (nextBpmChange != null && t >= nextBpmChange.Time)
+                {
+                    t = nextBpmChange.Time;
+                    bpm = nextBpmChange.Bpm;
+                    nextBpmChange = bpmIndex < bpmChanges.Count - 1 ? bpmChanges[++bpmIndex] : null;
+                    bbs = bbs.NextBar();
+                }
+
+               
                 // Update time in terms of beats
-                divCount++;
-                if (divCount == Toolbar.Subdivision)
-                {
-                    divCount = 0;
-                    beatCount++;
-                    order = 0;
-                }
+                float subdivUnit = (float) 1 / Toolbar.Subdivision;
+                int order = bbs.Beat == 1 ? 1 : bbs.Subdiv <= 0.001f ? 0 : -1;
 
-                if (beatCount == timeSig.BeatsInABar())
-                {
-                    beatCount = 0;
-                    barCount++;
-                    order = 1;
-                }
-
-                _subdivisionsAndOrders.Add((t, order, barCount));
+                _subdivisionsAndOrders.Add((t, order, bbs.Bar));
                 t += MathUtility.BeatsToSeconds(1, bpm)/Toolbar.Subdivision;
+                bbs = bbs.Add(0,0, subdivUnit);
             }
         }
 
@@ -304,41 +304,6 @@ namespace UI
             for (int i = thickLineIndex; i < _initialGraphicsCount; i++)
             {
                 _thickGridlineObjects[i].gameObject.SetActive(false);
-            }
-        }
-
-        private void UpdateBarNumberGraphics(int fromIndex)
-        {
-            var subdivIndex = Math.Max(0, fromIndex - 1);
-
-            int barTextIndex = 0;
-            
-            // Disable all of the bar numbers
-            for (int i = 0; i < _initialGraphicsCount; i++)
-            {
-                _barNumberObjects[i].gameObject.SetActive(false);
-            }
-            
-            // Draw bar numbers within range
-            while (subdivIndex < _subdivisionsAndOrders.Count && _subdivisionsAndOrders[subdivIndex].Item1 < _rightTime)
-            {
-                float t = MathUtility.InverseLerpUnclamped(_leftTime, _rightTime, _subdivisionsAndOrders[subdivIndex].Item1);
-                Vector2 timelinePos = Vector2.LerpUnclamped(_panelLeft, _panelRight, t) + Vector2.up * _panel.size.y/2;
-                RectTransform barTextObj = _barNumberObjects[barTextIndex];
-                TextMeshProUGUI barText = _barNumberTextObjects[barTextIndex++];
-                if (_subdivisionsAndOrders[subdivIndex].Item2 > 0)
-                {
-                    barTextObj.anchoredPosition = timelinePos + Vector2.up * _barNumberOffset;
-                    barTextObj.gameObject.SetActive(true);
-                    barText.fontSize = _barNumberSize;
-                    barText.text = _subdivisionsAndOrders[subdivIndex].Item3.ToString();
-                }
-                else
-                {
-                    barTextObj.gameObject.SetActive(false);
-                }
-                
-                subdivIndex++;
             }
         }
 
@@ -417,6 +382,11 @@ namespace UI
             var nextTime = _subdivisionsAndOrders[(index + 1) % _subdivisionsAndOrders.Count].Item1;
             return Mathf.Abs(time - prevTime) < Mathf.Abs(time - nextTime) ? prevTime : nextTime;
         }
+        
+        private void ToggleSeekerLock(bool @lock)
+        {
+            _lockSeeker = @lock;
+        }
 
         private void HandleClickEventNode(EventNodeUI node)
         {
@@ -451,11 +421,13 @@ namespace UI
         private void CreateBpmChangeFlag()
         {
             Engine.BpmChanges.Add(new BpmChange(SongSeeker.SongTimeSeconds, Bpm));
+            Engine.ForceUpdate();
         }
 
         private void CreateTimeSignatureChangeFlag()
         {
             Engine.TimeSigChanges.Add(new TimeSignatureChange(SongSeeker.SongTimeSeconds, TimeSignature));
+            Engine.ForceUpdate();
         }
 
         public void Select(SelectInfo info, Vector2 pos, bool empty = false)

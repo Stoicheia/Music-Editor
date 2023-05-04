@@ -10,6 +10,7 @@ namespace RhythmEngine
     [RequireComponent(typeof(AudioSource))]
     public class EditorEngine : MonoBehaviour
     {
+        public event Action OnForceUpdate;
         public SongAsset Song => _song;
         public AudioSource AudioSource => _source;
         public List<RhythmEvent> Events => _levelData.Events;
@@ -26,12 +27,12 @@ namespace RhythmEngine
         private void Awake()
         {
             _source = GetComponent<AudioSource>();
-            _levelData = new LevelData(_song.DefaultBpm, _song.DefaultTimeSignature);
         }
 
         public void SetSong(SongAsset song)
         {
             _song = song;
+            _levelData = new LevelData(_song.DefaultBpm, _song.DefaultTimeSignature);
         }
 
         public void AddEvent(RhythmEvent e)
@@ -91,6 +92,11 @@ namespace RhythmEngine
             }
 
             return TimeSigChanges[index].TimeSignature;
+        }
+
+        public void ForceUpdate()
+        {
+            OnForceUpdate?.Invoke();
         }
     }
 }
