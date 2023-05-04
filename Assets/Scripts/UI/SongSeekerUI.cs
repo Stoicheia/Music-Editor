@@ -91,6 +91,11 @@ namespace UI
             _audio.time = time;
         }
 
+        public void SetTime(float t)
+        {
+            UpdateSongTime(t / SongLengthSeconds);
+        }
+
         public void Scroll(float s)
         {
             UpdateSongTime(_audio.time + s);

@@ -6,23 +6,39 @@ using Utility;
 namespace UI
 {
     [RequireComponent(typeof(RectTransform))]
-    public class TimelineSeeker : MonoBehaviour, ISelectorInteractor
+    public class TimelineSeeker : TimelineDrawerHelperUI, ISelectorInteractor
     {
         public SongSeekerUI Audio { get; set; }
 
         private RectTransform _rectTransform;
+        [field: SerializeField] private float Offset { get; set; }
+        [field: SerializeField] private float Height { get; set; }
+
+        private Rect _panel;
+        private float _left;
+        private float _right;
 
         private void Awake()
         {
             _rectTransform = GetComponent<RectTransform>();
         }
 
-        public void Draw(Rect panel, float leftTime, float rightTime, float center, float height, float off)
+        public void SetConfig(float h, float o)
         {
-            float t = MathUtility.InverseLerpUnclamped(leftTime, rightTime, center);
+            Height = h;
+            Offset = o;
+        }
+
+        public override void Draw(EditorEngine _, Rect panel, float leftTime, float rightTime, int fromIndex)
+        {
+            _panel = panel;
+            _left = leftTime;
+            _right = rightTime;
+            
+            float t = MathUtility.InverseLerpUnclamped(leftTime, rightTime, Audio.SongTimeSeconds);
             _rectTransform.anchoredPosition = 
-                Vector2.LerpUnclamped(new Vector2(panel.xMin, panel.y), new Vector2(panel.xMax, panel.y), t) + Vector2.up * off;
-            _rectTransform.sizeDelta = new Vector2(_rectTransform.sizeDelta.x, height);
+                Vector2.LerpUnclamped(new Vector2(panel.xMin, panel.y), new Vector2(panel.xMax, panel.y), t) + Vector2.up * Offset;
+            _rectTransform.sizeDelta = new Vector2(_rectTransform.sizeDelta.x, Height);
         }
         
         public void Select(SelectInfo info, Vector2 pos, bool special = false)
@@ -37,7 +53,18 @@ namespace UI
 
         public void Move(SelectInfo info, Vector2 pos)
         {
-            //throw new System.NotImplementedException();
+            var (time, _) = MathUtility.PositionToTime(
+                pos,
+                Timeline.RelativeTransform,
+                _panel,
+                _left,
+                _right,
+                null,
+                true,
+                true
+            );
+
+            Audio.SetTime(time);
         }
 
         public void Place(SelectInfo info, Vector2 pos)

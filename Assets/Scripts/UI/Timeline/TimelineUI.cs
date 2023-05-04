@@ -19,6 +19,7 @@ namespace UI
         public LevelEditorUI LevelEditor { get; set; }
         public EditorEngine Engine { get; set; }
         public ToolbarUI Toolbar { get; set; }
+        public Transform RelativeTransform => _timelinePanel.transform;
         
         [Header("User Settings")]
         [SerializeField] private float _focusSeconds;
@@ -116,6 +117,9 @@ namespace UI
             _ghostGraphic = Instantiate(_ghostEventPrefab, _eventGraphicsRoot).GetComponent<RectTransform>();
             _seekerGraphic = Instantiate(_seekerPrefab, _foregroundGraphicsRoot);
             _seekerGraphic.Audio = SongSeeker;
+            _seekerGraphic.SetConfig(_seekerHeight, _seekerOffset);
+            _seekerGraphic.Init(this, Engine);
+
 
             foreach (var enode in _eventObjects)
             {
@@ -130,6 +134,9 @@ namespace UI
             Toolbar.OnToggleSeekerState += ToggleSeekerLock;
 
             RecalculateSubdivisions();
+            _leftTime = Mathf.Min(SongSeeker.SongLengthSeconds - _focusSeconds, SongSeeker.SongTimeSeconds - _focusSeconds / 2);
+            _rightTime = Mathf.Min(SongSeeker.SongLengthSeconds, SongSeeker.SongTimeSeconds + _focusSeconds / 2);
+            
             _isInitialised = true;
         }
 
@@ -215,7 +222,7 @@ namespace UI
                 _rightTime = Mathf.Min(maxTime, centerSeconds + _focusSeconds / 2);
             }
 
-            _seekerGraphic.Draw( _panel, _leftTime, _rightTime, centerSeconds, _seekerHeight, _seekerOffset);
+            _seekerGraphic.Draw(Engine, _panel, _leftTime, _rightTime, 0);
         }
 
         private void RecalculateSubdivisions()
@@ -344,17 +351,26 @@ namespace UI
         private void UpdateGhostGraphics()
         {
             Vector2 anchoredMousePos = _timelinePanel.transform.InverseTransformPoint(Selector.MouseScreenPosition);
-            if (!_panel.Contains(anchoredMousePos) || _activeNode != null)
+            Debug.Log(Selector.MouseScreenPosition);
+
+            var (songTime, valid) = MathUtility.PositionToTime(
+                Selector.MouseScreenPosition,
+                _timelinePanel.transform,
+                _panel,
+                _leftTime,
+                _rightTime,
+                _snapToGrid ? Snap : null,
+                true,
+                false
+            );
+            
+            if (!valid || _activeNode != null)
             {
                 _ghostGraphic.gameObject.SetActive(false);
                 _ghostTime = -1000;
                 return;
             }
             _ghostGraphic.gameObject.SetActive(true);
-            float relPos = Mathf.InverseLerp(_panelLeft.x, _panelRight.x, anchoredMousePos.x);
-            float songTime = Mathf.Lerp(_leftTime, _rightTime, relPos);
-            if (_snapToGrid) songTime = Snap(songTime);
-            _ghostTime = songTime;
             float newRelPos = Mathf.InverseLerp(_leftTime, _rightTime, songTime);
 
             float x = Vector2.Lerp(_panelLeft, _panelRight, newRelPos).x;

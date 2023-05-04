@@ -86,7 +86,7 @@ namespace UI
 
         public void OnPointerMove(PointerEventData eventData)
         {
-            MouseScreenPosition = eventData.pointerCurrentRaycast.screenPosition;
+            MouseScreenPosition = eventData.position;
         }
 
         public void OnPointerUp(PointerEventData eventData)
