@@ -8,8 +8,10 @@ using Utility;
 namespace UI
 {
     [RequireComponent( typeof(RectTransform))]
-    public class BpmField : MonoBehaviour
+    public class BpmField : MonoBehaviour, ISelectorInteractor
     {
+        public static event Action<BpmChange> OnRequestDelete;
+        
         public BpmChange ChangeFlag { get; set; }
         [NonSerialized] public RectTransform rectTransform;
         
@@ -42,6 +44,32 @@ namespace UI
         public void SetText(string s)
         {
             _inputField.text = s;
+        }
+
+        public void Select(SelectInfo info, Vector2 pos, bool special = false)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void Click(SelectInfo info, Vector2 pos)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void Move(SelectInfo info, Vector2 pos)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void Place(SelectInfo info, Vector2 pos)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void RightClicked(SelectInfo info, Vector2 pos)
+        {
+            OnRequestDelete?.Invoke(ChangeFlag);
+            // TODO: Metadata!
         }
     }
 }

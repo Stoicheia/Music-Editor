@@ -8,8 +8,10 @@ using Utility;
 namespace UI
 {
     [RequireComponent(typeof(RectTransform))]
-    public class TimeSignatureField : MonoBehaviour
+    public class TimeSignatureField : MonoBehaviour, ISelectorInteractor
     {
+        public static event Action<TimeSignatureChange> OnRequestDelete;
+        
         public TimeSignatureChange ChangeFlag { get; set; }
         [NonSerialized] public RectTransform rectTransform;
         
@@ -52,5 +54,25 @@ namespace UI
             _denominatorField.text = s2;
         }
 
+        public void Select(SelectInfo info, Vector2 pos, bool special = false)
+        {
+        }
+
+        public void Click(SelectInfo info, Vector2 pos)
+        {
+        }
+
+        public void Move(SelectInfo info, Vector2 pos)
+        {
+        }
+
+        public void Place(SelectInfo info, Vector2 pos)
+        {
+        }
+
+        public void RightClicked(SelectInfo info, Vector2 pos)
+        {
+            OnRequestDelete?.Invoke(ChangeFlag);
+        }
     }
 }

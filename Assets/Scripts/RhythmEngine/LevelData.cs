@@ -32,14 +32,15 @@ namespace RhythmEngine
     [Serializable]
     public class LevelData
     {
+        [field: SerializeField] public SongAssetData SongData { get; set; }
         public List<RhythmEvent> Events => _events;
-        private List<RhythmEvent> _events;
+        [SerializeField] private List<RhythmEvent> _events;
         
-        private List<BpmChange> _bpmChanges;
-        private List<TimeSignatureChange> _timeSigChanges;
+        [SerializeField] private List<BpmChange> _bpmChanges;
+        [SerializeField] private List<TimeSignatureChange> _timeSigChanges;
 
-        private float _defaultBpm;
-        private TimeSignature _defaultTimeSignature;
+        private float _defaultBpm => SongData.DefaultBpm;
+        private TimeSignature _defaultTimeSignature => SongData.DefaultTimeSignature;
 
         public LevelData(float defaultBpm, TimeSignature defaultTimeSignature)
         {
@@ -49,9 +50,6 @@ namespace RhythmEngine
         
             AddBpmChange(0, defaultBpm);
             AddTimeSignatureChange(0, defaultTimeSignature);
-
-            _defaultBpm = defaultBpm;
-            _defaultTimeSignature = defaultTimeSignature;
         }
 
         public BpmChange AddBpmChange(float time, float bpm)

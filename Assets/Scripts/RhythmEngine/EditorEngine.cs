@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Rhythm;
+using UI;
 using UnityEngine;
 using Utility;
 
@@ -28,6 +29,14 @@ namespace RhythmEngine
         {
             _source = GetComponent<AudioSource>();
         }
+
+        private void Start()
+        {
+            BpmField.OnRequestDelete += DeleteBpmFlag;
+            TimeSignatureField.OnRequestDelete += DeleteTimeSigFlag;
+        }
+
+        
 
         public void SetSong(SongAsset song)
         {
@@ -97,6 +106,16 @@ namespace RhythmEngine
         public void ForceUpdate()
         {
             OnForceUpdate?.Invoke();
+        }
+        
+        private void DeleteTimeSigFlag(TimeSignatureChange obj)
+        {
+            TimeSigChanges.Remove(obj);
+        }
+
+        private void DeleteBpmFlag(BpmChange obj)
+        {
+            BpmChanges.Remove(obj);
         }
     }
 }

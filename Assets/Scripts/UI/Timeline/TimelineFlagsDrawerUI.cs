@@ -10,7 +10,6 @@ namespace UI
     public class TimelineFlagsDrawerUI : TimelineDrawerHelperUI
     {
         private const float DRAW_PADDING_SECONDS = 1;
-        public TimelineUI Timeline { get; set; }
         public override void Init(TimelineUI timeline, EditorEngine data)
         {
             base.Init(timeline, data);
@@ -43,7 +42,7 @@ namespace UI
         [Header("Advanced")] 
         [SerializeField] [Range(50, 500)] private int _initialisedFields;
         [SerializeField] private RectTransform _graphicsRoot;
-
+ 
         private void Awake()
         {
             _bpmFields = new List<BpmField>();
