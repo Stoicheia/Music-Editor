@@ -46,5 +46,11 @@ namespace UI
            ChangeFlag.TimeSignature = new TimeSignature(numerator, denominator);
         }
 
+        public void SetText(string s1, string s2)
+        {
+            _numeratorField.text = s1;
+            _denominatorField.text = s2;
+        }
+
     }
 }

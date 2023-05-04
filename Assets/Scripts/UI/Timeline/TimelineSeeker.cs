@@ -55,6 +55,11 @@ namespace UI
 
         public void Move(SelectInfo info, Vector2 pos)
         {
+            MoveTo(pos);
+        }
+
+        public void MoveTo(Vector2 pos)
+        {
             var (time, _) = MathUtility.PositionToTime(
                 pos,
                 Timeline.RelativeTransform,

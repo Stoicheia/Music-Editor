@@ -38,5 +38,10 @@ namespace UI
             float.TryParse(s, out bpm);
             ChangeFlag.Bpm = bpm;
         }
+
+        public void SetText(string s)
+        {
+            _inputField.text = s;
+        }
     }
 }

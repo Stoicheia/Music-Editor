@@ -102,6 +102,7 @@ namespace UI
                     field = _bpmFieldPool.Dequeue();
                     _bpmChangeToField[bpmChange] = field;
                     field.ChangeFlag = bpmChange;
+                    field.SetText(bpmChange.Bpm.ToString());
                 }
                 else
                 {
@@ -131,6 +132,8 @@ namespace UI
                     field = _timeSignatureFieldPool.Dequeue();
                     _timeSigChangeToField[timeSigChange] = field;
                     field.ChangeFlag = timeSigChange;
+                    var newSig = timeSigChange.TimeSignature;
+                    field.SetText(newSig.Numerator.ToString(), newSig.Denominator.ToString());
                 }
                 else
                 {

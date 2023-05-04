@@ -479,7 +479,11 @@ namespace UI
 
         public void Move(SelectInfo info, Vector2 pos)
         {
-            if (Toolbar.ActiveOption != ToolbarOption.Draw) return;
+            if (Toolbar.ActiveOption != ToolbarOption.Draw)
+            {
+                _seekerGraphic.MoveTo(pos);
+                return;
+            }
             if (_activeNode == null) return;
             
             HandleExtendEventNode(_activeNode, pos);
