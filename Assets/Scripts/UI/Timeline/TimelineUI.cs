@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using DefaultNamespace.Input;
 using Rhythm;
 using RhythmEngine;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using Utility;
@@ -119,6 +121,7 @@ namespace UI
             _seekerGraphic.Audio = SongSeeker;
             _seekerGraphic.SetConfig(_seekerHeight, _seekerOffset);
             _seekerGraphic.Init(this, Engine);
+            _seekerGraphic.OnMove += () => Toolbar.ToggleSeeker(false);
 
 
             foreach (var enode in _eventObjects)
@@ -173,7 +176,7 @@ namespace UI
 
             _clickTimer -= Time.deltaTime;
 
-            if (Input.GetKey(KeyCode.LeftShift))
+            if (Keybinds.Shift)
             {
                 _focusSeconds *= (1 - _zoomSpeed * Input.mouseScrollDelta.y);
                 _focusSeconds = Mathf.Clamp(_focusSeconds, _minZoomSeconds, _maxZoomSeconds);
@@ -182,10 +185,17 @@ namespace UI
             else
             {
                 float moveBy = -_scrollSpeed * Input.mouseScrollDelta.y;
-                if (!_lockSeeker && _rightTime + moveBy > 0)
+                if (_rightTime + moveBy > 0)
                 {
-                    _leftTime += moveBy;
-                    _rightTime += moveBy;
+                    if (!_lockSeeker)
+                    {
+                        _leftTime += moveBy;
+                        _rightTime += moveBy;
+                    }
+                    else
+                    {
+                        SongSeeker.Scroll(moveBy);
+                    }
                 }
             }
         }
@@ -351,7 +361,6 @@ namespace UI
         private void UpdateGhostGraphics()
         {
             Vector2 anchoredMousePos = _timelinePanel.transform.InverseTransformPoint(Selector.MouseScreenPosition);
-            Debug.Log(Selector.MouseScreenPosition);
 
             var (songTime, valid) = MathUtility.PositionToTime(
                 Selector.MouseScreenPosition,

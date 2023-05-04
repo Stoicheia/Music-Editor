@@ -28,18 +28,25 @@ namespace UI
         private void OnEnable()
         {
             State = _defaultState;
-            _button.onClick.AddListener(OnHandleButtonPress);
+            _button.onClick.AddListener(Toggle);
         }
 
         private void OnDisable()
         {
-            _button.onClick.RemoveListener(OnHandleButtonPress);
+            _button.onClick.RemoveListener(Toggle);
         }
 
-        private void OnHandleButtonPress()
+        public void Toggle()
         {
             State = !State;
             OnToggle?.Invoke(State);
         }
+
+        public void Toggle(bool b)
+        {
+            State = b;
+            OnToggle?.Invoke(State);
+        }
+        
     }
 }

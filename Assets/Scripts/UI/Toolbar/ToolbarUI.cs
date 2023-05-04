@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DefaultNamespace.Input;
 using Rhythm;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,25 +11,24 @@ namespace UI
     {
         Select, Draw
     }
+
     public class ToolbarUI : MonoBehaviour
     {
         public event Action OnRequestBpmFlag;
         public event Action OnRequestTimeSignatureFlag;
         public event Action<bool> OnToggleSeekerState;
-        
+
         public ToolbarOption ActiveOption => _activeOption;
         public int Subdivision => _subdivision;
-        
-        [Header("Buttons")]
-        [SerializeField] private List<ToolbarButtonUI> _buttons;
+
+        [Header("Buttons")] [SerializeField] private List<ToolbarButtonUI> _buttons;
         [SerializeField] private Button _bpmFlagButton;
         [SerializeField] private Button _timeSigFlagButton;
         [SerializeField] private ToolbarToggle _seekerToggle;
 
-        [Header("Options")]
-        [SerializeField] private ToolbarOption _defaultOption;
+        [Header("Options")] [SerializeField] private ToolbarOption _defaultOption;
         [SerializeField] private int _subdivision = 1;
-        
+
         private ToolbarOption _activeOption;
 
         private void Start()
@@ -41,8 +41,22 @@ namespace UI
             _bpmFlagButton.onClick.AddListener(RequestBpmFlag);
             _timeSigFlagButton.onClick.AddListener(RequestTimeSignatureFlag);
             _seekerToggle.OnToggle += HandleSeekerToggle;
-            
+
+            Keybinds.OnDrawPressed += TempDrawOn;
+            Keybinds.OnDrawReleased += TempDrawOff;
+            Keybinds.OnSeekLockToggle += ToggleSeeker;
+
             ChangeOption(_defaultOption);
+        }
+
+        private void TempDrawOn()
+        {
+            if(_activeOption == ToolbarOption.Select) ChangeOption(ToolbarOption.Draw);
+        }
+
+        private void TempDrawOff()
+        {
+            if (_activeOption == ToolbarOption.Draw) ChangeOption(ToolbarOption.Select);
         }
 
         private void HandleSeekerToggle(bool state)
@@ -60,9 +74,9 @@ namespace UI
             }
         }
         
-        private void HandleSeekerToggle()
+        private void ToggleSeeker()
         {
-            
+            _seekerToggle.Toggle();
         }
 
         public void RequestBpmFlag()
@@ -77,7 +91,7 @@ namespace UI
 
         public void ToggleSeeker(bool s)
         {
-            _seekerToggle.State = s;
+            _seekerToggle.Toggle(s);
         }
     }
 }

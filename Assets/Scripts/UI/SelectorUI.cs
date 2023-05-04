@@ -87,7 +87,7 @@ namespace UI
         public void OnPointerMove(PointerEventData eventData)
         {
             MouseScreenPosition = eventData.position;
-        }
+         }
 
         public void OnPointerUp(PointerEventData eventData)
         {

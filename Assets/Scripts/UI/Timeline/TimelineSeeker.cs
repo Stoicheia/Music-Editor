@@ -8,6 +8,8 @@ namespace UI
     [RequireComponent(typeof(RectTransform))]
     public class TimelineSeeker : TimelineDrawerHelperUI, ISelectorInteractor
     {
+        public event Action OnMove;
+        
         public SongSeekerUI Audio { get; set; }
 
         private RectTransform _rectTransform;
@@ -65,6 +67,7 @@ namespace UI
             );
 
             Audio.SetTime(time);
+            OnMove?.Invoke();
         }
 
         public void Place(SelectInfo info, Vector2 pos)

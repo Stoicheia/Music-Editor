@@ -1,4 +1,5 @@
 ﻿using System;
+using DefaultNamespace.Input;
 using Rhythm;
 using RhythmEngine;
 using TMPro;
@@ -25,6 +26,11 @@ namespace UI
             _slider = GetComponent<Slider>();
         }
 
+        private void Start()
+        {
+            Keybinds.OnTogglePause += TogglePause;
+        }
+
         private void Update()
         {
             if (_audio == null)
@@ -38,11 +44,6 @@ namespace UI
             
 
             _slider.value = _audio.time / _audio.clip.length;
-
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                TogglePause();
-            }
         }
 
         public void InitWithAudioSource(EditorEngine source)
@@ -98,7 +99,7 @@ namespace UI
 
         public void Scroll(float s)
         {
-            UpdateSongTime(_audio.time + s);
+            SetTime(_audio.time + s);
         }
     }
 }
