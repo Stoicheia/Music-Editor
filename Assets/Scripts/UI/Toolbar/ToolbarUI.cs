@@ -16,6 +16,7 @@ namespace UI
     {
         public event Action OnRequestBpmFlag;
         public event Action OnRequestTimeSignatureFlag;
+        public event Action OnRequestOffsetFlag;
         public event Action<bool> OnToggleSeekerState;
 
         public ToolbarOption ActiveOption => _activeOption;
@@ -23,6 +24,7 @@ namespace UI
 
         [Header("Buttons")] [SerializeField] private List<ToolbarButtonUI> _buttons;
         [SerializeField] private Button _bpmFlagButton;
+        [SerializeField] private Button _offsetFlagButton;
         [SerializeField] private Button _timeSigFlagButton;
         [SerializeField] private ToolbarToggle _seekerToggle;
 
@@ -39,6 +41,7 @@ namespace UI
             }
 
             _bpmFlagButton.onClick.AddListener(RequestBpmFlag);
+            _offsetFlagButton.onClick.AddListener(RequestOffsetFlag);
             _timeSigFlagButton.onClick.AddListener(RequestTimeSignatureFlag);
             _seekerToggle.OnToggle += HandleSeekerToggle;
 
@@ -83,6 +86,12 @@ namespace UI
         {
             OnRequestBpmFlag?.Invoke();
         }
+        
+        public void RequestOffsetFlag()
+        {
+            OnRequestOffsetFlag?.Invoke();
+        }
+
 
         public void RequestTimeSignatureFlag()
         {

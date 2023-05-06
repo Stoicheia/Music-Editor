@@ -20,7 +20,6 @@ namespace UI
         [Header("Graphics")]
         [SerializeField] private TextMeshProUGUI _timeField;
 
-
         private void Awake()
         {
             _slider = GetComponent<Slider>();
@@ -33,7 +32,7 @@ namespace UI
 
         private void Update()
         {
-            if (_audio == null)
+            if (_audio == null || _audio.clip == null)
             {
                 _timeField.text = "";
                 return;
@@ -55,6 +54,13 @@ namespace UI
         public void SetSong(SongAsset song)
         {
             _audio.clip = song.Clip;
+            _audio.Play();
+            _audio.Pause();
+        }
+        
+        public void SetSong(AudioClip songClip)
+        {
+            _audio.clip = songClip;
             _audio.Play();
             _audio.Pause();
         }

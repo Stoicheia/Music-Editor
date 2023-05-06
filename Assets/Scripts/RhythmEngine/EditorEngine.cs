@@ -12,17 +12,17 @@ namespace RhythmEngine
     public class EditorEngine : MonoBehaviour
     {
         public event Action OnForceUpdate;
-        public SongAsset Song => _song;
+        //public SongAsset Song => _song;
         public AudioSource AudioSource => _source;
         public List<RhythmEvent> Events => _levelData.Events;
         public List<BpmChange> BpmChanges => _levelData.GetBpmChanges();
         public List<TimeSignatureChange> TimeSigChanges => _levelData.GetTimeSigChanges();
 
 
-        [SerializeField] private SongAsset _song;
+        //[SerializeField] private SongAsset _song;
+        private AudioClip _loadedSong;
 
         private LevelData _levelData;
-        
         private AudioSource _source;
 
         private void Awake()
@@ -36,12 +36,16 @@ namespace RhythmEngine
             TimeSignatureField.OnRequestDelete += DeleteTimeSigFlag;
         }
 
-        
-
-        public void SetSong(SongAsset song)
+        public void Load(LevelData levelData, AudioClip clip)
         {
-            _song = song;
-            _levelData = new LevelData(_song.DefaultBpm, _song.DefaultTimeSignature);
+            _loadedSong = clip;
+            _levelData = levelData;
+        }
+
+        public void LoadNewFromAsset(SongAsset song)
+        {
+            _loadedSong = song.Clip;
+            _levelData = new LevelData(song);
         }
 
         public void AddEvent(RhythmEvent e)

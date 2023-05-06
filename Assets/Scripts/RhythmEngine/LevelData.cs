@@ -5,18 +5,22 @@ using UnityEngine;
 
 namespace RhythmEngine
 {
+    [Serializable]
     public class BpmChange
     {
         public float Time;
         public float Bpm;
+        public bool Lock;
 
-        public BpmChange(float t, float b)
+        public BpmChange(float t, float b, bool @lock = false)
         {
             Time = t;
             Bpm = b;
+            Lock = @lock;
         }
     }
 
+    [Serializable]
     public class TimeSignatureChange
     {
         public float Time;
@@ -42,14 +46,26 @@ namespace RhythmEngine
         private float _defaultBpm => SongData.DefaultBpm;
         private TimeSignature _defaultTimeSignature => SongData.DefaultTimeSignature;
 
-        public LevelData(float defaultBpm, TimeSignature defaultTimeSignature)
+        public LevelData(SongAssetData data)
         {
             _events = new List<RhythmEvent>();
             _bpmChanges = new List<BpmChange>();
             _timeSigChanges = new List<TimeSignatureChange>();
         
-            AddBpmChange(0, defaultBpm);
-            AddTimeSignatureChange(0, defaultTimeSignature);
+            AddBpmChange(0, data.DefaultBpm);
+            AddTimeSignatureChange(0, data.DefaultTimeSignature);
+            SongData = data;
+        }
+        
+        public LevelData(SongAsset asset)
+        {
+            _events = new List<RhythmEvent>();
+            _bpmChanges = new List<BpmChange>();
+            _timeSigChanges = new List<TimeSignatureChange>();
+        
+            AddBpmChange(0, asset.DefaultBpm);
+            AddTimeSignatureChange(0, asset.DefaultTimeSignature);
+            SongData = asset.Data;
         }
 
         public BpmChange AddBpmChange(float time, float bpm)

@@ -13,7 +13,7 @@ namespace Editor
             base.OnInspectorGUI();
             if (GUILayout.Button("Load"))
             {
-                obj.Init();
+                obj.InitFromAsset();
             }
         }
     }

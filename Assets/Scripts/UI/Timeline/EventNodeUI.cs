@@ -41,7 +41,7 @@ namespace UI
             State = NodeState.Normal;
         }
 
-        private void Start()
+        public void Init()
         {
             Parent = this;
             

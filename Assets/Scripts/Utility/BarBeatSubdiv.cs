@@ -39,6 +39,16 @@ namespace Utility
             Recount();
             return this;
         }
+        
+        public BarBeatSubdiv NewBar()
+        {
+            Bar = 1;
+            Beat = 1;
+            Subdiv = 0;
+            
+            Recount();
+            return this;
+        }
 
         public BarBeatSubdiv ChangeBeatsPerBar(int bpb)
         {

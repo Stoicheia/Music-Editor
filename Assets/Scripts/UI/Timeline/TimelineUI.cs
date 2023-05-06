@@ -112,6 +112,7 @@ namespace UI
                 _eventObjects.Add(eventInstance);
                 eventInstance.ReferenceTransform = _timelinePanel.rectTransform;
                 eventInstance.ParentUI = this;
+                eventInstance.Init();
             }
 
             _eventNodePool = new Queue<EventNodeUI>(_eventObjects);
@@ -133,6 +134,7 @@ namespace UI
             }
 
             Toolbar.OnRequestBpmFlag += CreateBpmChangeFlag;
+            Toolbar.OnRequestOffsetFlag += CreateOffsetFlag;
             Toolbar.OnRequestTimeSignatureFlag += CreateTimeSignatureChangeFlag;
             Toolbar.OnToggleSeekerState += ToggleSeekerLock;
 
@@ -268,8 +270,8 @@ namespace UI
                 {
                     t = nextBpmChange.Time;
                     bpm = nextBpmChange.Bpm;
+                    bbs = nextBpmChange.Lock ? bbs.NewBar() : bbs.NextBar();
                     nextBpmChange = bpmIndex < bpmChanges.Count - 1 ? bpmChanges[++bpmIndex] : null;
-                    bbs = bbs.NextBar();
                 }
 
                
@@ -448,6 +450,12 @@ namespace UI
             Engine.BpmChanges.Add(new BpmChange(SongSeeker.SongTimeSeconds, Bpm));
             Engine.ForceUpdate();
         }
+        
+        private void CreateOffsetFlag()
+        {
+            Engine.BpmChanges.Add(new BpmChange(SongSeeker.SongTimeSeconds, Bpm, true));
+            Engine.ForceUpdate();
+        }
 
         private void CreateTimeSignatureChangeFlag()
         {
@@ -479,6 +487,7 @@ namespace UI
 
         public void Move(SelectInfo info, Vector2 pos)
         {
+            if (!_isInitialised) return;
             if (Toolbar.ActiveOption != ToolbarOption.Draw)
             {
                 _seekerGraphic.MoveTo(pos);

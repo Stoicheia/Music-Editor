@@ -6,20 +6,14 @@ using Directory = UnityEngine.Windows.Directory;
 
 namespace Serialization
 {
-    public class SerializationManager
+    public static class SerializationManager
     {
-        public static async Task Save(string directory, string fileName, object saveData)
+        public static async Task Save(string path, object saveData)
         {
             string json = JsonUtility.ToJson(saveData);
             
             await Task.Run(() =>
             {
-                if (!Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-
-                string path = $"{directory}/{fileName}.txt";
                 File.WriteAllText(path, json);
             });
         }

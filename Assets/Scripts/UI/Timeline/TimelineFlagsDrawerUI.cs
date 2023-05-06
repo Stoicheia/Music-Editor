@@ -92,6 +92,8 @@ namespace UI
                     bpmChange.Time > rightTime + DRAW_PADDING_SECONDS ||
                     bpmChanges.IndexOf(bpmChange) == 0)
                 {
+                    if(_bpmChangeToField.ContainsKey(bpmChange))
+                        _bpmChangeToField[bpmChange].gameObject.SetActive(false);
                     continue;
                 }
 
@@ -101,6 +103,7 @@ namespace UI
                     field = _bpmFieldPool.Dequeue();
                     _bpmChangeToField[bpmChange] = field;
                     field.ChangeFlag = bpmChange;
+                    field.Lock = bpmChange.Lock;
                     field.SetText(bpmChange.Bpm.ToString());
                 }
                 else
@@ -122,6 +125,8 @@ namespace UI
                     timeSigChange.Time > rightTime + DRAW_PADDING_SECONDS ||
                     timeSigChanges.IndexOf(timeSigChange) == 0)
                 {
+                    if(_timeSigChangeToField.ContainsKey(timeSigChange))
+                        _timeSigChangeToField[timeSigChange].gameObject.SetActive(false);
                     continue;
                 }
 

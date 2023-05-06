@@ -13,9 +13,21 @@ namespace UI
         public static event Action<BpmChange> OnRequestDelete;
         
         public BpmChange ChangeFlag { get; set; }
+
+        public bool Lock
+        {
+            get => _lock;
+            set
+            {
+                _lock = value;
+                _lockGraphics.gameObject.SetActive(_lock);
+            }
+        }
         [NonSerialized] public RectTransform rectTransform;
         
         [SerializeField] private TMP_InputField _inputField;
+        [SerializeField] private RectTransform _lockGraphics;
+        private bool _lock;
         private void Awake()
         {
             rectTransform = GetComponent<RectTransform>();
