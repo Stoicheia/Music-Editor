@@ -36,7 +36,7 @@ namespace RhythmEngine
     [Serializable]
     public class LevelData
     {
-        [field: SerializeField] public SongAssetData SongData { get; set; }
+        [SerializeField] public SongAssetData SongData;
         public List<RhythmEvent> Events => _events;
         [SerializeField] private List<RhythmEvent> _events;
         

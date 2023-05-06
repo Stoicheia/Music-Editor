@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ namespace Rhythm
     }
     
     [Serializable]
-    public class RhythmEvent
+    public class RhythmEvent : ISerializationCallbackReceiver
     {
         public float TimeSeconds => _timeSeconds;
         public List<RhythmData> RhythmData => _rhythmData;
@@ -106,6 +107,17 @@ namespace Rhythm
             float leftBound = TimeSeconds - error;
             float rightBound = TimeSeconds + DurationSeconds + error;
             return other >= leftBound && other <= rightBound;
+        }
+
+        public void OnBeforeSerialize()
+        {
+            
+        }
+
+        public void OnAfterDeserialize()
+        {
+            foreach(var i in _intData) _rhythmData.Add(i);
+            foreach(var s in _stringData) _rhythmData.Add(s);
         }
     }
 }

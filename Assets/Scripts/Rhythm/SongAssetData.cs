@@ -5,12 +5,12 @@ namespace Rhythm
 {
     [Serializable]
     public class SongAssetData
-    { 
-        [field: SerializeField] public string ClipPath { get; set; }
-        [field: SerializeField] public string Name { get; set; }
-        [field: SerializeField] public string Author { get; set; }
-        [field: SerializeField] public float DefaultBpm { get; set; }
-        [field: SerializeField] public TimeSignature DefaultTimeSignature { get; set; }
+    {
+        [SerializeField] public string ClipPath;
+        [SerializeField] public string Name;
+        [SerializeField] public string Author;
+        [SerializeField] public float DefaultBpm;
+        [SerializeField] public TimeSignature DefaultTimeSignature;
         
         public SongAssetData(string clipPath, string name, string author, float defaultBpm, TimeSignature defaultTimeSignature)
         {
