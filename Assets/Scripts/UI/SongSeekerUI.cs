@@ -72,13 +72,14 @@ namespace UI
 
         public void UnpauseSong()
         {
+            if(!_audio.isPlaying) _audio.Play();
             _audio.UnPause();
         }
 
         public void TogglePause()
         {
-            if(_audio.isPlaying) _audio.Pause();
-            else _audio.UnPause();
+            if(_audio.isPlaying) PauseSong();
+            else UnpauseSong();
         }
 
         public float SongTimeSeconds => _audio.time;

@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using DefaultNamespace.LevelEditor;
 using RhythmEngine;
 using Serialization;
 using SimpleFileBrowser;
@@ -13,6 +14,7 @@ namespace IO
         {
             bool cancel = false;
             string[] selectedPaths = null;
+            FileBrowser.SetFilters( true, new FileBrowser.Filter( "JSON Files", ".json" ));
             FileBrowser.ShowSaveDialog(
                 (paths => selectedPaths = paths),
                 (() => cancel = true),
@@ -35,14 +37,28 @@ namespace IO
             return path;
         }
 
-        public static async Task<(LevelData, AudioClip)> LoadLevelData(string path)
+        public static async Task<(LevelData, AudioClip)> LoadLevelData()
         {
-            LevelData levelData = await ReadFromJSONFile(path);
+            bool cancel = false;
+            string[] selectedPaths = null;
+            FileBrowser.SetFilters( true, new FileBrowser.Filter( "JSON Files", ".json" ));
+            FileBrowser.ShowLoadDialog(
+                (paths => selectedPaths = paths),
+                (() => cancel = true),
+                FileBrowser.PickMode.Files
+            );
+            while (!cancel && selectedPaths == null)
+            {
+                await Task.Delay(5);
+            }
+            if (cancel || selectedPaths == null || selectedPaths.Length < 1) return (null, null);
+            LevelData levelData = await ReadFromJSONFile(selectedPaths[0]);
             string audioClipPath = levelData.SongData.ClipPath;
-            AudioClip audioClip = await SongSelect.LoadAudioClip(audioClipPath);
+            AudioClip audioClip = await SongLoader.LoadAudioClip(audioClipPath);
             if (audioClip == null)
             {
-                Debug.LogError($"AudioClip at {audioClipPath} connected to this level data cannot be found. Did you move it?");
+                Debug.LogError($"AudioClip at {audioClipPath} connected to this level data cannot be found. " +
+                               $"Did you move or delete it?");
                 return (null, null);
             }
 

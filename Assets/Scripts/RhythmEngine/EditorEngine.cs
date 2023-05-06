@@ -17,6 +17,7 @@ namespace RhythmEngine
         public List<RhythmEvent> Events => _levelData.Events;
         public List<BpmChange> BpmChanges => _levelData.GetBpmChanges();
         public List<TimeSignatureChange> TimeSigChanges => _levelData.GetTimeSigChanges();
+        public LevelData LevelData => _levelData;
 
 
         //[SerializeField] private SongAsset _song;

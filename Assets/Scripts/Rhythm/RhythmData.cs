@@ -1,11 +1,12 @@
 ﻿using System;
+using UnityEngine;
 
 namespace Rhythm
 {
     [Serializable]
     public abstract class RhythmData
     {
-        public string PropertyName;
+        [SerializeField] public string PropertyName;
 
         public bool IsType<T>()
         {
@@ -13,13 +14,15 @@ namespace Rhythm
         }
     }
 
+    [Serializable]
     public class IntData : RhythmData
     {
-        public int IntValue;
+        [SerializeField] public int IntValue;
     }
 
+    [Serializable]
     public class StringData : RhythmData
     {
-        public string StringValue;
+        [SerializeField] public string StringValue;
     }
 }

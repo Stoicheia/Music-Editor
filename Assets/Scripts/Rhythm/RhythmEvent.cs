@@ -26,9 +26,11 @@ namespace Rhythm
         public float DurationSeconds => _duration.Seconds;
         public bool HasDuration => _duration.HasDuration;
         
-        private float _timeSeconds;
-        private RhythmEventDuration _duration;
+        [SerializeField] private float _timeSeconds;
+        [SerializeField] private RhythmEventDuration _duration;
         private List<RhythmData> _rhythmData; //metadata for this event
+        [SerializeField] private List<IntData> _intData;
+        [SerializeField] private List<StringData> _stringData;
         public RhythmData GetData(string propName)
         {
             foreach (var r in _rhythmData)
@@ -38,7 +40,6 @@ namespace Rhythm
                     return r;
                 }
             }
-
             return null;
         }
 
@@ -46,6 +47,8 @@ namespace Rhythm
         {
             _timeSeconds = s;
             _rhythmData = new List<RhythmData>();
+            _intData = new List<IntData>();
+            _stringData = new List<StringData>();
             _duration = new RhythmEventDuration(dur > float.Epsilon, dur);
         }
 
@@ -67,11 +70,15 @@ namespace Rhythm
         public void AddData(RhythmData d)
         {
             _rhythmData.Add(d);
+            if(d is IntData idata) _intData.Add(idata);
+            if(d is StringData sdata) _stringData.Add(sdata);
         }
         
         public void RemoveData(RhythmData d)
         {
             _rhythmData.Remove(d);
+            if(d is IntData idata) _intData.Remove(idata);
+            if(d is StringData sdata) _stringData.Remove(sdata);
         }
 
         public bool WithinRange(float left, float right)
