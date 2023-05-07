@@ -7,10 +7,11 @@ using Utility;
 
 namespace UI
 {
-    [RequireComponent( typeof(RectTransform))]
+    [RequireComponent(typeof(RectTransform))]
     public class BpmField : MonoBehaviour, ISelectorInteractor
     {
         public static event Action<BpmChange> OnRequestDelete;
+        public static event Action<BpmChange, Vector2> OnRequestMove;
         
         public BpmChange ChangeFlag { get; set; }
 
@@ -70,7 +71,7 @@ namespace UI
 
         public void Move(SelectInfo info, Vector2 pos)
         {
-            //throw new NotImplementedException();
+            OnRequestMove?.Invoke(ChangeFlag, pos);
         }
 
         public void Place(SelectInfo info, Vector2 pos)
@@ -81,7 +82,6 @@ namespace UI
         public void RightClicked(SelectInfo info, Vector2 pos)
         {
             OnRequestDelete?.Invoke(ChangeFlag);
-            // TODO: Metadata!
         }
     }
 }

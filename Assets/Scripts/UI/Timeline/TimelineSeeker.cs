@@ -8,9 +8,11 @@ namespace UI
     [RequireComponent(typeof(RectTransform))]
     public class TimelineSeeker : TimelineDrawerHelperUI, ISelectorInteractor
     {
-        public event Action OnMove;
+        public event Action<float> OnMove;
+        public event Action OnRelease;
         
         public SongSeekerUI Audio { get; set; }
+        public bool SuppressMouseMove { get; set; }
 
         private RectTransform _rectTransform;
         [field: SerializeField] private float Offset { get; set; }
@@ -75,14 +77,15 @@ namespace UI
                 true,
                 true
             );
-
-            Audio.SetTime(time);
-            OnMove?.Invoke();
+            
+            if(!SuppressMouseMove)
+                Audio.SetTime(time);
+            OnMove?.Invoke(time);
         }
 
         public void Place(SelectInfo info, Vector2 pos)
         {
-            //throw new System.NotImplementedException();
+            OnRelease?.Invoke();
         }
 
         public void RightClicked(SelectInfo info, Vector2 pos)

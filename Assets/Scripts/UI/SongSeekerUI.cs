@@ -13,7 +13,6 @@ namespace UI
     public class SongSeekerUI : MonoBehaviour
     {
         public float ScrollSpeedMultiplier { get; set; }
-        
         private Slider _slider;
         private AudioSource _audio;
 
@@ -38,9 +37,7 @@ namespace UI
                 return;
             }
             
-            _timeField.text = _audio.clip == null ? "0:00/0:00" : 
-                $"{StringUtility.SecondsPrettyString(_audio.time)}/{StringUtility.SecondsPrettyString(_audio.clip.length)}";
-            
+            _timeField.text = _audio.clip == null ? "0:00/0:00" : GetTimeString();
 
             _slider.value = _audio.time / _audio.clip.length;
         }
@@ -107,6 +104,11 @@ namespace UI
         public void Scroll(float s)
         {
             SetTime(_audio.time + s);
+        }
+
+        private string GetTimeString()
+        {
+            return $"{StringUtility.SecondsPrettyString(_audio.time)}/{StringUtility.SecondsPrettyString(_audio.clip.length)}";
         }
     }
 }

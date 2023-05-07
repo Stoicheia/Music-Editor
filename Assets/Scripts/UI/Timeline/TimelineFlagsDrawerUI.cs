@@ -108,7 +108,7 @@ namespace UI
             {
                 if (bpmChange.Time < leftTime - DRAW_PADDING_SECONDS ||
                     bpmChange.Time > rightTime + DRAW_PADDING_SECONDS ||
-                    bpmChanges.IndexOf(bpmChange) == 0)
+                    bpmChange.Hide)
                 {
                     if(_bpmChangeToField.ContainsKey(bpmChange))
                         _bpmChangeToField[bpmChange].gameObject.SetActive(false);
@@ -141,7 +141,7 @@ namespace UI
             {
                 if (timeSigChange.Time < leftTime - DRAW_PADDING_SECONDS ||
                     timeSigChange.Time > rightTime + DRAW_PADDING_SECONDS ||
-                    timeSigChanges.IndexOf(timeSigChange) == 0)
+                    timeSigChange.Hide)
                 {
                     if(_timeSigChangeToField.ContainsKey(timeSigChange))
                         _timeSigChangeToField[timeSigChange].gameObject.SetActive(false);

@@ -28,6 +28,7 @@ namespace UI
         
         [Header("User Settings")]
         [SerializeField] private float _focusSeconds;
+        [SerializeField] [Range(0, 0.1f)] private float _seekerScrollLeniency;
         
         [SerializeField] private bool _ghostEventEnabled;
         [SerializeField] private float _clickCooldown = 0.3f;
@@ -45,6 +46,8 @@ namespace UI
         [SerializeField] private TimelineSeeker _seekerPrefab;
         [SerializeField] private EventNodeUI _genericEventPrefab;
         [SerializeField] private GameObject _ghostEventPrefab;
+        [SerializeField] private GameObject _invalidRegionPrefabL;
+        [SerializeField] private GameObject _invalidRegionPrefabR;
         [Header("Graphics Options")]
         [SerializeField] private float _seekerOffset = 100;
         [SerializeField] private float _seekerHeight = 100;
@@ -72,6 +75,8 @@ namespace UI
         private List<EventNodeUI> _eventObjects;
         private RectTransform _ghostGraphic;
         private TimelineSeeker _seekerGraphic;
+        private RectTransform _invalidRegionGraphicLeft;
+        private RectTransform _invalidRegionGraphicRight;
 
         private float _ghostTime;
 
@@ -132,7 +137,13 @@ namespace UI
             _seekerGraphic.Audio = SongSeeker;
             _seekerGraphic.SetConfig(_seekerHeight, _seekerOffset);
             _seekerGraphic.Init(this, Engine);
-            _seekerGraphic.OnMove += () => Toolbar.ToggleSeeker(false);
+            _seekerGraphic.OnMove += HandleSeekerMove;
+            _seekerGraphic.OnRelease += HandleSeekerRelease;
+
+            _invalidRegionGraphicLeft =
+                Instantiate(_invalidRegionPrefabL, _dividerGraphicsRoot).GetComponent<RectTransform>();
+            _invalidRegionGraphicRight =
+                Instantiate(_invalidRegionPrefabR, _dividerGraphicsRoot).GetComponent<RectTransform>();
             
             foreach (var e in Engine.Events)
             {
@@ -155,12 +166,52 @@ namespace UI
             Toolbar.OnToggleSeekerState += ToggleSeekerLock;
             Toolbar.OnToggleSnapState += ToggleSnapState;
 
+            BpmField.OnRequestMove += HandleBpmFieldMove;
+            TimeSignatureField.OnRequestMove += HandleTimeSigFieldMove;
+
             RecalculateSubdivisions();
             _leftTime = Mathf.Min(SongSeeker.SongLengthSeconds - _focusSeconds, SongSeeker.SongTimeSeconds - _focusSeconds / 2);
             _rightTime = Mathf.Min(SongSeeker.SongLengthSeconds, SongSeeker.SongTimeSeconds + _focusSeconds / 2);
             
             _isInitialised = true;
         }
+
+        private void HandleSeekerRelease()
+        {
+            _seekerGraphic.SuppressMouseMove = false;
+        }
+
+        private void HandleSeekerMove(float time)
+        {
+            Toolbar.ToggleSeeker(false);
+            float leftScrollPoint = Mathf.Lerp(_leftTime, _rightTime, _seekerScrollLeniency);
+            float rightScrollPoint = Mathf.Lerp(_leftTime, _rightTime, 1 - _seekerScrollLeniency);
+
+            float scroll = 0;
+            
+            if (time < leftScrollPoint)
+            {
+                scroll = -_songScrollSpeed * _focusSeconds * Time.deltaTime;
+                _seekerGraphic.SuppressMouseMove = true;
+            }
+            else if (time > rightScrollPoint)
+            {
+                scroll = _songScrollSpeed * _focusSeconds * Time.deltaTime;
+                _seekerGraphic.SuppressMouseMove = true;
+            }
+            else
+            {
+                _seekerGraphic.SuppressMouseMove = false;
+            }
+            
+            if (_leftTime + 2 * scroll > -_focusSeconds / 2 && _rightTime + 2 * scroll < SongSeeker.SongLengthSeconds + _focusSeconds/2)
+            {
+                SongSeeker.Scroll(scroll);
+                _leftTime += scroll;
+                _rightTime += scroll;
+            }
+        }
+
 
         private void CreateMoreGridlines(int quantity)
         {
@@ -227,6 +278,7 @@ namespace UI
             _barNumberDrawer.UpdateSubdivisions(_subdivisionsAndOrders);
             _barNumberDrawer.Draw(Engine, _panel, _leftTime, _rightTime, subdivIndex);
             UpdateTimelineEventGraphics();
+            DrawInvalidRegion();
             
             if(_flagsDrawer != null)
                 _flagsDrawer.Draw(Engine, _panel, _leftTime, _rightTime);
@@ -345,6 +397,32 @@ namespace UI
                 _subdivisionsAndOrders.Add((t, order, bbs.Bar));
                 t += MathUtility.BeatsToSeconds(1, bpm)/Toolbar.Subdivision;
                 bbs = bbs.Add(0,0, subdivUnit);
+            }
+        }
+
+        private void DrawInvalidRegion()
+        {
+            if (_leftTime < 0)
+            {
+                _invalidRegionGraphicLeft.gameObject.SetActive(true);
+                float relPos = MathUtility.InverseLerpUnclamped(_leftTime, _rightTime, 0);
+                Vector2 pos = Vector2.LerpUnclamped(_panelLeft, _panelRight, relPos);
+                _invalidRegionGraphicLeft.anchoredPosition = pos;
+            }
+            else
+            {
+                _invalidRegionGraphicLeft.gameObject.SetActive(false);
+            }
+            if (_rightTime > SongSeeker.SongLengthSeconds)
+            {
+                _invalidRegionGraphicRight.gameObject.SetActive(true);
+                float relPos = MathUtility.InverseLerpUnclamped(_leftTime, _rightTime, SongSeeker.SongLengthSeconds);
+                Vector2 pos = Vector2.LerpUnclamped(_panelLeft, _panelRight, relPos);
+                _invalidRegionGraphicRight.anchoredPosition = pos;
+            }
+            else
+            {
+                _invalidRegionGraphicRight.gameObject.SetActive(false);
             }
         }
 
@@ -567,6 +645,38 @@ namespace UI
         {
             Engine.TimeSigChanges.Add(new TimeSignatureChange(SongSeeker.SongTimeSeconds, TimeSignature));
             Engine.ForceUpdate();
+        }
+        
+        private void HandleBpmFieldMove(BpmChange change, Vector2 pos)
+        {
+            (float, bool) timeData = MathUtility.PositionToTime(
+                pos,
+                _timelinePanel.transform,
+                _panel,
+                _leftTime,
+                _rightTime,
+                null,
+                false,
+                true
+            );
+
+            change.Time = Mathf.Clamp(timeData.Item1, 0, SongSeeker.SongLengthSeconds);
+        }
+        
+        private void HandleTimeSigFieldMove(TimeSignatureChange change, Vector2 pos)
+        {
+            (float, bool) timeData = MathUtility.PositionToTime(
+                pos,
+                _timelinePanel.transform,
+                _panel,
+                _leftTime,
+                _rightTime,
+                null,
+                false,
+                true
+            );
+
+            change.Time = Mathf.Clamp(timeData.Item1, 0, SongSeeker.SongLengthSeconds);
         }
 
         public void Select(SelectInfo info, Vector2 pos, bool empty = false)

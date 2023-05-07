@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Rhythm;
 using UnityEngine;
+using Utility;
 
 namespace RhythmEngine
 {
@@ -11,6 +12,7 @@ namespace RhythmEngine
         public float Time;
         public float Bpm;
         public bool Lock;
+        public bool Hide;
 
         public BpmChange(float t, float b, bool @lock = false)
         {
@@ -25,6 +27,7 @@ namespace RhythmEngine
     {
         public float Time;
         public TimeSignature TimeSignature;
+        public bool Hide;
 
         public TimeSignatureChange(float t, TimeSignature ts)
         {
@@ -52,8 +55,11 @@ namespace RhythmEngine
             _bpmChanges = new List<BpmChange>();
             _timeSigChanges = new List<TimeSignatureChange>();
         
-            AddBpmChange(0, data.DefaultBpm);
-            AddTimeSignatureChange(0, data.DefaultTimeSignature);
+            var initialBpmChange = AddBpmChange(0, data.DefaultBpm);
+            initialBpmChange.Hide = true;
+            AddBpmChange(0, data.DefaultBpm, true);
+            var initialTimeSigChange = AddTimeSignatureChange(0, data.DefaultTimeSignature);
+            initialTimeSigChange.Hide = true;
             SongData = data;
         }
         
@@ -63,15 +69,18 @@ namespace RhythmEngine
             _bpmChanges = new List<BpmChange>();
             _timeSigChanges = new List<TimeSignatureChange>();
         
-            AddBpmChange(0, asset.DefaultBpm);
-            AddTimeSignatureChange(0, asset.DefaultTimeSignature);
+            var initialBpmChange = AddBpmChange(0, asset.DefaultBpm);
+            initialBpmChange.Hide = true;
+            AddBpmChange(0, asset.DefaultBpm, true);
+            var initialTimeSigChange = AddTimeSignatureChange(0, asset.DefaultTimeSignature);
+            initialTimeSigChange.Hide = true;
             SongData = asset.Data;
         }
 
-        public BpmChange AddBpmChange(float time, float bpm)
+        public BpmChange AddBpmChange(float time, float bpm, bool @lock = false)
         {
             bpm = Mathf.Max(1, bpm);
-            BpmChange change = new BpmChange(time, bpm);
+            BpmChange change = new BpmChange(time, bpm, @lock);
             _bpmChanges.Add(change);
             _bpmChanges.Sort((x, y) => x.Time.CompareTo(y.Time));
             return change;

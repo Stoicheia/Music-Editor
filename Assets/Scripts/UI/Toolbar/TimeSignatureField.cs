@@ -10,6 +10,8 @@ namespace UI
     [RequireComponent(typeof(RectTransform))]
     public class TimeSignatureField : MonoBehaviour, ISelectorInteractor
     {
+        public static event Action<TimeSignatureChange, Vector2> OnRequestMove;
+
         public static event Action<TimeSignatureChange> OnRequestDelete;
         
         public TimeSignatureChange ChangeFlag { get; set; }
@@ -64,6 +66,7 @@ namespace UI
 
         public void Move(SelectInfo info, Vector2 pos)
         {
+            OnRequestMove?.Invoke(ChangeFlag, pos);
         }
 
         public void Place(SelectInfo info, Vector2 pos)

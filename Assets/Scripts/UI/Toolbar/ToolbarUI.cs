@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using DefaultNamespace.Input;
 using Rhythm;
+using RhythmEngine;
 using UnityEngine;
 using UnityEngine.UI;
 
