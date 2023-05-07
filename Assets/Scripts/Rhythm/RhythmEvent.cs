@@ -26,9 +26,16 @@ namespace Rhythm
         public List<RhythmData> RhythmData => _rhythmData;
         public float DurationSeconds => _duration.Seconds;
         public bool HasDuration => _duration.HasDuration;
-        
+
+        public float Vertical
+        {
+            get => _vertical;
+            set => _vertical = value;
+        }
+
         [SerializeField] private float _timeSeconds;
         [SerializeField] private RhythmEventDuration _duration;
+        [SerializeField] private float _vertical;
         private List<RhythmData> _rhythmData; //metadata for this event
         [SerializeField] private List<IntData> _intData;
         [SerializeField] private List<StringData> _stringData;

@@ -14,7 +14,7 @@ namespace IO
         {
             bool cancel = false;
             string[] selectedPaths = null;
-            FileBrowser.SetFilters( true, new FileBrowser.Filter( "JSON Files", ".json" ));
+            FileBrowser.SetFilters( false, new FileBrowser.Filter( "JSON Files", ".json" ));
             FileBrowser.ShowSaveDialog(
                 (paths => selectedPaths = paths),
                 (() => cancel = true),
@@ -41,7 +41,7 @@ namespace IO
         {
             bool cancel = false;
             string[] selectedPaths = null;
-            FileBrowser.SetFilters( true, new FileBrowser.Filter( "JSON Files", ".json" ));
+            FileBrowser.SetFilters( false, new FileBrowser.Filter( "JSON Files", ".json" ));
             FileBrowser.ShowLoadDialog(
                 (paths => selectedPaths = paths),
                 (() => cancel = true),

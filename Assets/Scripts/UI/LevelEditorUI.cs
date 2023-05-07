@@ -51,6 +51,7 @@ namespace UI
 
         public void Init((LevelData, AudioClip) data)
         {
+            _timeline.Clear();
             _loadData = data;
             var levelData = data.Item1;
             var clip = data.Item2;

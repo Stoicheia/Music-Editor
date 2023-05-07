@@ -14,6 +14,8 @@ namespace UI
             Timeline = timeline;
             _engine = data;
         }
+
+        public abstract void Clear();
         public abstract void Draw(EditorEngine data, Rect panel, float leftTime, float rightTime, int fromIndex = 0);
     }
 }

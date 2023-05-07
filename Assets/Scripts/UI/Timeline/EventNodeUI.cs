@@ -19,9 +19,11 @@ namespace UI
         public event Action<EventNodeUI, Vector2> OnMove;
         public event Action<EventNodeUI> OnRightClick;
         public event Action<EventNodeUI, Vector2> OnRequestExtension;
+        public event Action<EventNodeUI> OnPlace;
         
         public RhythmEvent Event { get; set; }
         public float Vertical { get; set; }
+        public float Time => Event.TimeSeconds;
         public RectTransform ReferenceTransform { get; set; }
         public TimelineUI ParentUI { get; set; }
         public float ExtenderHeight { get; set; }
@@ -63,6 +65,12 @@ namespace UI
             base.Update();
         }
 
+        public void DestroyChildren()
+        {
+            Destroy(_extenderInstance.gameObject);
+            Destroy(_endNodeInstance.gameObject);
+        }
+
         public void Draw(Rect rect, float leftTime, float rightTime, float vertical)
         {
             float t = MathUtility.InverseLerpUnclamped(leftTime, rightTime, Event.TimeSeconds);
@@ -89,7 +97,6 @@ namespace UI
                 _endNodeInstance.rectTransform.sizeDelta = new Vector2(NodeRadius * 2, NodeRadius * 2);
                 _extenderInstance.rectTransform.anchoredPosition = new Vector2(x, y);
                 _extenderInstance.rectTransform.sizeDelta = new Vector2(xEnd - x, ExtenderHeight);
-                
             }
         }
 
@@ -119,6 +126,7 @@ namespace UI
         public override void Place(SelectInfo info, Vector2 pos)
         {
             base.Place(info, pos);
+            OnPlace?.Invoke(this);
         }
 
         public override void RightClicked(SelectInfo info, Vector2 pos)

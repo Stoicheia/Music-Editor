@@ -16,7 +16,7 @@ namespace IO
 
         public void OpenSong()
         {
-            FileBrowser.SetFilters( true, new FileBrowser.Filter( "WAV Files", ".wav" ));
+            FileBrowser.SetFilters( false, new FileBrowser.Filter( "WAV Files", ".wav" ));
             FileBrowser.ShowLoadDialog(OnLoadSong, () => Debug.Log("meh"), FileBrowser.PickMode.Files);
         }
 

@@ -23,7 +23,25 @@ namespace UI
                 _timeSignatureFields.Add(newSigField);
             }
         }
-        
+
+        public override void Clear()
+        {
+            foreach (var graphic in _bpmFields)
+            {
+                Destroy(graphic.gameObject);
+            }
+            _bpmFields.Clear();
+            _bpmFieldPool.Clear();
+            _bpmChangeToField.Clear();
+            foreach (var graphic in _timeSignatureFields)
+            {
+                Destroy(graphic.gameObject);
+            }
+            _timeSignatureFields.Clear();
+            _timeSignatureFieldPool.Clear();
+            _timeSigChangeToField.Clear();
+        }
+
         private List<BpmField> _bpmFields;
         private List<TimeSignatureField> _timeSignatureFields;
 

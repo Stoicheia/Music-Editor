@@ -45,6 +45,16 @@ namespace UI
             };
         }
 
+        public override void Clear()
+        {
+            foreach (var graphic in _barNumberObjects)
+            {
+                Destroy(graphic.gameObject);
+            }
+            _barNumberObjects.Clear();
+            _barNumberTextObjects.Clear();
+        }
+
         public void UpdateSubdivisions(List<(float, int, int)> subdivs)
         {
             _subdivisions = subdivs;

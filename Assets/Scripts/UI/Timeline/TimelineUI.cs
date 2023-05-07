@@ -22,6 +22,8 @@ namespace UI
         public EditorEngine Engine { get; set; }
         public ToolbarUI Toolbar { get; set; }
         public Transform RelativeTransform => _timelinePanel.transform;
+        public Dictionary<RhythmEvent, EventNodeUI> EventToNode => _eventToNode;
+        public Queue<EventNodeUI> EventNodePool => _eventNodePool;
         
         [Header("User Settings")]
         [SerializeField] private float _focusSeconds;
@@ -49,7 +51,9 @@ namespace UI
         [SerializeField] private float _dividerHeight = 250;
         [Header("Drawers")] 
         [SerializeField] private BarNumberDrawerUI _barNumberDrawer;
+
         [Header("Advanced")] 
+        [SerializeField] private TimelineCommandManager _commandManager;
         [SerializeField] private TimelineFlagsDrawerUI _flagsDrawer;
         [SerializeField] private RectTransform _dividerGraphicsRoot;
         [SerializeField] private RectTransform _eventGraphicsRoot;
@@ -97,6 +101,8 @@ namespace UI
             _thinGridlineObjects = new List<RectTransform>();
             _eventObjects = new List<EventNodeUI>();
             _eventToNode = new Dictionary<RhythmEvent, EventNodeUI>();
+
+            _commandManager.Clear();
             
             _barNumberDrawer.Init(this, Engine);
             _flagsDrawer.Init(this, Engine);
@@ -123,7 +129,12 @@ namespace UI
             _seekerGraphic.SetConfig(_seekerHeight, _seekerOffset);
             _seekerGraphic.Init(this, Engine);
             _seekerGraphic.OnMove += () => Toolbar.ToggleSeeker(false);
-
+            
+            foreach (var e in Engine.Events)
+            {
+                var eventNode = _eventNodePool.Dequeue();
+                _eventToNode[e] = eventNode;
+            }
 
             foreach (var enode in _eventObjects)
             {
@@ -131,6 +142,7 @@ namespace UI
                 enode.OnRightClick += HandleRightClickEventNode;
                 enode.OnMove += HandleMoveEventNode;
                 enode.OnRequestExtension += HandleExtendEventNode;
+                enode.OnPlace += HandlePlaceEventNode;
             }
 
             Toolbar.OnRequestBpmFlag += CreateBpmChangeFlag;
@@ -143,6 +155,33 @@ namespace UI
             _rightTime = Mathf.Min(SongSeeker.SongLengthSeconds, SongSeeker.SongTimeSeconds + _focusSeconds / 2);
             
             _isInitialised = true;
+        }
+
+        public void Clear()
+        {
+            if (!_isInitialised) return;
+            _flagsDrawer.Clear();
+            _seekerGraphic.Clear();
+            _barNumberDrawer.Clear();
+            foreach (var graphic in _eventObjects)
+            {
+                graphic.DestroyChildren();
+                Destroy(graphic.gameObject);
+            }
+            _eventObjects.Clear();
+            _eventNodePool.Clear();
+            _eventToNode.Clear();
+            foreach (var graphic in _thinGridlineObjects)
+            {
+                Destroy(graphic.gameObject);
+            }
+            _thinGridlineObjects.Clear();
+            foreach (var graphic in _thickGridlineObjects)
+            {
+                Destroy(graphic.gameObject);
+            }
+            _thickGridlineObjects.Clear();
+            Destroy(_seekerGraphic.gameObject);
         }
 
 
@@ -204,23 +243,20 @@ namespace UI
         
         private EventNodeUI PlaceNew(float time, float vertical)
         {
-            RhythmEvent newEvent = new RhythmEvent(time);
-            Engine.AddEvent(newEvent);
-            _eventToNode[newEvent] = _eventNodePool.Dequeue();
-            _eventToNode[newEvent].Vertical = vertical;
-            _eventToNode[newEvent].Event = newEvent;
-            return _eventToNode[newEvent];
+            PlaceEventCommand eventCommand = new PlaceEventCommand(time, vertical);
+            _commandManager.ApplyCommand(eventCommand, this, Engine);
+            return eventCommand.EventNode;
+        }
+
+        private void DeleteNode(EventNodeUI node)
+        {
+            DeleteNodeCommand deleteCommand = new DeleteNodeCommand(node);
+            _commandManager.ApplyCommand(deleteCommand, this, Engine);
         }
         
         public void ClearAllEvents()
         {
-            foreach (var node in _eventToNode.Values)
-            {
-                _eventNodePool.Enqueue(node);
-            }
-            
-            _eventToNode.Clear();
-            Engine.ClearLevelData();
+            Debug.Log("The ability to clear all events has been removed.");
         }
 
         private void UpdateTimelinePosition()
@@ -342,7 +378,7 @@ namespace UI
                     continue;
                 }
 
-                float vertical = eventGraphic.Vertical;
+                float vertical = e.Vertical;
                 
                 eventGraphic.Event = e;
                 eventGraphic.Draw(_panel, _leftTime, _rightTime, vertical);
@@ -415,18 +451,20 @@ namespace UI
             _lockSeeker = @lock;
         }
 
+        private MoveEventCommand _queuedMoveCommand;
         private void HandleClickEventNode(EventNodeUI node)
         {
-            
+            if (Toolbar.ActiveOption != ToolbarOption.Select) return;
+
+            MoveEventCommand moveCommand = new MoveEventCommand(node, node.Time, node.Event.DurationSeconds, node.Vertical);
+            _queuedMoveCommand = moveCommand;
         }
 
         private void HandleRightClickEventNode(EventNodeUI node)
         {
             if (Toolbar.ActiveOption != ToolbarOption.Draw) return;
         
-            _eventNodePool.Enqueue(node);
-            _eventToNode.Remove(node.Event);
-            Engine.RemoveEvent(node.Event);
+            DeleteNode(node);
         }
 
         private void HandleMoveEventNode(EventNodeUI node, Vector2 pos)
@@ -441,8 +479,30 @@ namespace UI
             float time = Mathf.Lerp(_leftTime, _rightTime, relPos);
             node.Event.SetTime(_snapToGrid ? Snap(time) : time);
             node.Vertical = Mathf.InverseLerp(_panel.yMin, _panel.yMax, anchoredPos.y);
+            node.Event.Vertical = node.Vertical;
             
             Engine.UpdateEvents();
+        }
+        
+        public void HandleExtendEventNode(EventNodeUI node, Vector2 pos)
+        {
+            Vector2 anchoredPos = _timelinePanel.transform.InverseTransformPoint(pos);
+            
+            if (!_panel.Contains(anchoredPos)) return;
+            
+            float relPos = Mathf.InverseLerp(_panelLeft.x, _panelRight.x, anchoredPos.x);
+            float time = Mathf.Lerp(_leftTime, _rightTime, relPos);
+            float boundedTime = Mathf.Max(node.Event.TimeSeconds, time);
+            node.Event.SetEndTime(_snapToGrid ? Snap(boundedTime) : boundedTime);
+        }
+        
+        private void HandlePlaceEventNode(EventNodeUI obj)
+        {
+            if (_queuedMoveCommand != null)
+            {
+                _commandManager.ApplyCommand(_queuedMoveCommand, this, Engine);
+                _queuedMoveCommand = null;
+            }
         }
         
         private void CreateBpmChangeFlag()
@@ -481,6 +541,7 @@ namespace UI
                 float time = Mathf.Lerp(_leftTime, _rightTime, relPos);
                 float vertical = Mathf.InverseLerp(_panel.yMin, _panel.yMax, anchoredPos.y);
                 _activeNode = PlaceNew(_snapToGrid ? Snap(time) : time, vertical);
+                _activeNode.Event.Vertical = vertical;
                 _clickTimer = _clickCooldown;
             }
         }
@@ -506,18 +567,6 @@ namespace UI
         public void RightClicked(SelectInfo info, Vector2 pos)
         {
             
-        }
-
-        public void HandleExtendEventNode(EventNodeUI node, Vector2 pos)
-        {
-            Vector2 anchoredPos = _timelinePanel.transform.InverseTransformPoint(pos);
-            
-            if (!_panel.Contains(anchoredPos)) return;
-            
-            float relPos = Mathf.InverseLerp(_panelLeft.x, _panelRight.x, anchoredPos.x);
-            float time = Mathf.Lerp(_leftTime, _rightTime, relPos);
-            float boundedTime = Mathf.Max(node.Event.TimeSeconds, time);
-            node.Event.SetEndTime(_snapToGrid ? Snap(boundedTime) : boundedTime);
         }
     }
 }

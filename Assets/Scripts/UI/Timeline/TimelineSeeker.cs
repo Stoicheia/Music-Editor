@@ -31,6 +31,11 @@ namespace UI
             Offset = o;
         }
 
+        public override void Clear()
+        {
+            
+        }
+
         public override void Draw(EditorEngine _, Rect panel, float leftTime, float rightTime, int fromIndex)
         {
             _panel = panel;
