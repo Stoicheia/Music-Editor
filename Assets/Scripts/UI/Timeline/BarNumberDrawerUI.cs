@@ -31,18 +31,22 @@ namespace UI
             _barNumberObjects = new List<RectTransform>();
             _barNumberTextObjects = new List<TextMeshProUGUI>();
 
-            for (int i = 0; i < _initialGraphicsCount; i++)
+            CreateMoreBarNumbers(_initialGraphicsCount);
+            _engine.OnForceUpdate += () =>
+            {
+                _forceDrawThisFrame = true;
+            };
+        }
+
+        private void CreateMoreBarNumbers(int quantity)
+        {
+            for (int i = 0; i < quantity; i++)
             {
                 RectTransform barNumberInstance = Instantiate(_barNumberTextPrefab, _barNumberGraphicsRoot)
                     .GetComponent<RectTransform>();
                 _barNumberObjects.Add(barNumberInstance);
                 _barNumberTextObjects.Add(barNumberInstance.GetComponent<TextMeshProUGUI>());
             }
-
-            _engine.OnForceUpdate += () =>
-            {
-                _forceDrawThisFrame = true;
-            };
         }
 
         public override void Clear()
@@ -71,7 +75,7 @@ namespace UI
             Vector2 panelRight = new Vector2(panel.xMax, panel.y);
             
             // Disable all of the bar numbers
-            for (int i = 0; i < _initialGraphicsCount; i++)
+            for (int i = 0; i < _barNumberObjects.Count; i++)
             {
                 _barNumberObjects[i].gameObject.SetActive(false);
             }
@@ -81,8 +85,14 @@ namespace UI
             {
                 float t = MathUtility.InverseLerpUnclamped(leftTime, rightTime, _subdivisions[subdivIndex].Item1);
                 Vector2 timelinePos = Vector2.LerpUnclamped(panelLeft, panelRight, t) + Vector2.up * panel.size.y/2;
+
+                if (++barTextIndex >= _barNumberObjects.Count || barTextIndex >= _barNumberTextObjects.Count)
+                {
+                    CreateMoreBarNumbers(_initialGraphicsCount);
+                }
+                
                 RectTransform barTextObj = _barNumberObjects[barTextIndex];
-                TextMeshProUGUI barText = _barNumberTextObjects[barTextIndex++];
+                TextMeshProUGUI barText = _barNumberTextObjects[barTextIndex];
                 if (_subdivisions[subdivIndex].Item2 > 0)
                 {
                     barTextObj.anchoredPosition = timelinePos + Vector2.up * _barNumberOffset;

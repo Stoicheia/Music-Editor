@@ -18,20 +18,25 @@ namespace UI
         public event Action OnRequestTimeSignatureFlag;
         public event Action OnRequestOffsetFlag;
         public event Action<bool> OnToggleSeekerState;
+        public event Action<(bool, int)> OnToggleSnapState;
 
         public ToolbarOption ActiveOption => _activeOption;
         public int Subdivision => _subdivision;
+        public bool SnapToGrid => _snapOn;
 
         [Header("Buttons")] [SerializeField] private List<ToolbarButtonUI> _buttons;
         [SerializeField] private Button _bpmFlagButton;
         [SerializeField] private Button _offsetFlagButton;
         [SerializeField] private Button _timeSigFlagButton;
         [SerializeField] private ToolbarToggle _seekerToggle;
+        [SerializeField] private BeatSnapDivisorUI _snapDivisorSlider;
+        [SerializeField] private Button _snapToggleButton;
 
         [Header("Options")] [SerializeField] private ToolbarOption _defaultOption;
         [SerializeField] private int _subdivision = 1;
 
         private ToolbarOption _activeOption;
+        private bool _snapOn;
 
         private void Start()
         {
@@ -44,6 +49,8 @@ namespace UI
             _offsetFlagButton.onClick.AddListener(RequestOffsetFlag);
             _timeSigFlagButton.onClick.AddListener(RequestTimeSignatureFlag);
             _seekerToggle.OnToggle += HandleSeekerToggle;
+            _snapDivisorSlider.OnChangeDivs += HandleBeatSnapChange;
+            _snapToggleButton.onClick.AddListener(HandleToggleSnap);
 
             Keybinds.OnDrawPressed += TempDrawOn;
             Keybinds.OnDrawReleased += TempDrawOff;
@@ -101,6 +108,18 @@ namespace UI
         public void ToggleSeeker(bool s)
         {
             _seekerToggle.Toggle(s);
+        }
+        
+        private void HandleBeatSnapChange(int value)
+        {
+            _subdivision = value;
+            OnToggleSnapState?.Invoke((_snapOn, _subdivision));
+        }
+
+        private void HandleToggleSnap()
+        {
+            _snapOn = !_snapOn;
+            OnToggleSnapState?.Invoke((_snapOn, _subdivision));
         }
     }
 }

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3553181675580521899}
   - component: {fileID: 2356033848444732795}
   m_Layer: 5
-  m_Name: Thin Divider
+  m_Name: Very Thin Divider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35,8 +35,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -45.380615, y: 53.577698}
-  m_SizeDelta: {x: 3, y: 21.8446}
+  m_AnchoredPosition: {x: -45.380615, y: 57.351715}
+  m_SizeDelta: {x: 1.9, y: 14.2966}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3553181675580521899
 CanvasRenderer:

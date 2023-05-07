@@ -24,20 +24,22 @@ namespace UI
         public Transform RelativeTransform => _timelinePanel.transform;
         public Dictionary<RhythmEvent, EventNodeUI> EventToNode => _eventToNode;
         public Queue<EventNodeUI> EventNodePool => _eventNodePool;
+        private bool _snapToGrid => Toolbar.SnapToGrid;
         
         [Header("User Settings")]
         [SerializeField] private float _focusSeconds;
-        [SerializeField] private bool _snapToGrid;
+        
         [SerializeField] private bool _ghostEventEnabled;
         [SerializeField] private float _clickCooldown = 0.3f;
         [SerializeField] private float _zoomSpeed = 0.3f;
         [SerializeField] [Range(0.1f, 3)] private float _minZoomSeconds = 1f;
         [SerializeField] [Range(10f, 120f)] private float _maxZoomSeconds = 1f;
-        [SerializeField] [Range(0.1f, 100f)] private float _scrollSpeed = 1f;
+        [SerializeField] [Range(0.001f, 1f)] private float _scrollSpeed = 1f;
         [SerializeField] [Range(0.1f, 100f)] private float _songScrollSpeed = 1f;
         [SerializeField] private bool _lockSeeker = true;
         [Header("Graphics")]
         [SerializeField] private Image _timelinePanel;
+        [SerializeField] private GameObject _veryThinGridlinePrefab;
         [SerializeField] private GameObject _thinGridlinePrefab;
         [SerializeField] private GameObject _thickGridlinePrefab;
         [SerializeField] private TimelineSeeker _seekerPrefab;
@@ -48,7 +50,10 @@ namespace UI
         [SerializeField] private float _seekerHeight = 100;
         [SerializeField] private float _nodeRadius = 100;
         [SerializeField] private float _extenderHeight = 50;
-        [SerializeField] private float _dividerHeight = 250;
+        [SerializeField] private float _generalDividerHeight = 250;
+        [SerializeField] [Range(0, 1)] private float _thickDividerHeight = 250;
+        [SerializeField] [Range(0, 1)] private float _thinDividerHeight = 250;
+        [SerializeField] [Range(0, 1)] private float _veryThinDividerHeight = 250;
         [Header("Drawers")] 
         [SerializeField] private BarNumberDrawerUI _barNumberDrawer;
 
@@ -61,6 +66,7 @@ namespace UI
         [SerializeField] private RectTransform _foregroundGraphicsRoot;
         [SerializeField][Range(50, 1000)] private int _initialGraphicsCount = 100;
 
+        private List<RectTransform> _veryThinGridlineObjects;
         private List<RectTransform> _thinGridlineObjects;
         private List<RectTransform> _thickGridlineObjects;
         private List<EventNodeUI> _eventObjects;
@@ -99,6 +105,7 @@ namespace UI
             _subdivisionsAndOrders = new List<(float, int, int)>();
             _thickGridlineObjects = new List<RectTransform>();
             _thinGridlineObjects = new List<RectTransform>();
+            _veryThinGridlineObjects = new List<RectTransform>();
             _eventObjects = new List<EventNodeUI>();
             _eventToNode = new Dictionary<RhythmEvent, EventNodeUI>();
 
@@ -109,17 +116,14 @@ namespace UI
             
             for (int i = 0; i < _initialGraphicsCount; i++)
             {
-                RectTransform thinLineInstance = Instantiate(_thinGridlinePrefab, _dividerGraphicsRoot).GetComponent<RectTransform>();
-                _thinGridlineObjects.Add(thinLineInstance);
-                RectTransform thickLineInstance = Instantiate(_thickGridlinePrefab, _dividerGraphicsRoot).GetComponent<RectTransform>();
-                _thickGridlineObjects.Add(thickLineInstance);
-
                 EventNodeUI eventInstance = Instantiate(_genericEventPrefab, _eventGraphicsRoot).GetComponent<EventNodeUI>();
                 _eventObjects.Add(eventInstance);
                 eventInstance.ReferenceTransform = _timelinePanel.rectTransform;
                 eventInstance.ParentUI = this;
                 eventInstance.Init();
             }
+            
+            CreateMoreGridlines(_initialGraphicsCount);
 
             _eventNodePool = new Queue<EventNodeUI>(_eventObjects);
 
@@ -149,12 +153,29 @@ namespace UI
             Toolbar.OnRequestOffsetFlag += CreateOffsetFlag;
             Toolbar.OnRequestTimeSignatureFlag += CreateTimeSignatureChangeFlag;
             Toolbar.OnToggleSeekerState += ToggleSeekerLock;
+            Toolbar.OnToggleSnapState += ToggleSnapState;
 
             RecalculateSubdivisions();
             _leftTime = Mathf.Min(SongSeeker.SongLengthSeconds - _focusSeconds, SongSeeker.SongTimeSeconds - _focusSeconds / 2);
             _rightTime = Mathf.Min(SongSeeker.SongLengthSeconds, SongSeeker.SongTimeSeconds + _focusSeconds / 2);
             
             _isInitialised = true;
+        }
+
+        private void CreateMoreGridlines(int quantity)
+        {
+            for (int i = 0; i < quantity; i++)
+            {
+                RectTransform veryThinLineInstance = 
+                    Instantiate(_veryThinGridlinePrefab, _dividerGraphicsRoot).GetComponent<RectTransform>();
+                _veryThinGridlineObjects.Add(veryThinLineInstance);
+                RectTransform thinLineInstance =
+                    Instantiate(_thinGridlinePrefab, _dividerGraphicsRoot).GetComponent<RectTransform>();
+                _thinGridlineObjects.Add(thinLineInstance);
+                RectTransform thickLineInstance = Instantiate(_thickGridlinePrefab, _dividerGraphicsRoot)
+                    .GetComponent<RectTransform>();
+                _thickGridlineObjects.Add(thickLineInstance);
+            }
         }
 
         public void Clear()
@@ -221,11 +242,17 @@ namespace UI
             {
                 _focusSeconds *= (1 - _zoomSpeed * Input.mouseScrollDelta.y);
                 _focusSeconds = Mathf.Clamp(_focusSeconds, _minZoomSeconds, _maxZoomSeconds);
+                if (!_lockSeeker)
+                {
+                    float center = (_leftTime + _rightTime) / 2;
+                    _leftTime = center - _focusSeconds / 2;
+                    _rightTime = center + _focusSeconds / 2;
+                }
             }
 
             else
             {
-                float moveBy = -_scrollSpeed * Input.mouseScrollDelta.y;
+                float moveBy = -_scrollSpeed * Input.mouseScrollDelta.y * _focusSeconds;
                 if (_rightTime + moveBy > 0)
                 {
                     if (!_lockSeeker)
@@ -313,7 +340,7 @@ namespace UI
                
                 // Update time in terms of beats
                 float subdivUnit = (float) 1 / Toolbar.Subdivision;
-                int order = bbs.Beat == 1 ? 1 : bbs.Subdiv <= 0.001f ? 0 : -1;
+                int order = bbs.Beat == 1 && bbs.Subdiv == 0 ? 1 : bbs.Subdiv == 0 ? 0 : -1;
 
                 _subdivisionsAndOrders.Add((t, order, bbs.Bar));
                 t += MathUtility.BeatsToSeconds(1, bpm)/Toolbar.Subdivision;
@@ -326,37 +353,50 @@ namespace UI
             var subdivIndex = Math.Max(0, fromIndex - 1);
 
             // Draw the gridlines within the focus range
+            int veryThinLineIndex = 0;
             int thinLineIndex = 0;
             int thickLineIndex = 0;
-            
+
             while (subdivIndex < _subdivisionsAndOrders.Count && _subdivisionsAndOrders[subdivIndex].Item1 < _rightTime)
             {
                 float t = MathUtility.InverseLerpUnclamped(_leftTime, _rightTime, _subdivisionsAndOrders[subdivIndex].Item1);
                 Vector2 timelinePos = Vector2.LerpUnclamped(_panelLeft, _panelRight, t);
                 RectTransform lineObj;
-                if (_subdivisionsAndOrders[subdivIndex].Item2 <= 0)
+                float relativeHeight;
+
+                if (veryThinLineIndex >= _thinGridlineObjects.Count - 1 || thinLineIndex >= _thickGridlineObjects.Count - 1)
                 {
-                    lineObj = _thinGridlineObjects[thinLineIndex++];
+                    CreateMoreGridlines(_initialGraphicsCount);
                 }
-                else
+
+                (lineObj, relativeHeight) = _subdivisionsAndOrders[subdivIndex].Item2 switch
                 {
-                    lineObj = _thickGridlineObjects[thickLineIndex++];
-                }
-                
+                    -1 => (_veryThinGridlineObjects[veryThinLineIndex++], _veryThinDividerHeight),
+                    0 => (_thinGridlineObjects[thinLineIndex++], _thinDividerHeight),
+                    1 => (_thickGridlineObjects[thickLineIndex++], _thickDividerHeight),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+
                 lineObj.anchoredPosition = timelinePos;
                 lineObj.gameObject.SetActive(true);
-                lineObj.sizeDelta = new Vector2(lineObj.sizeDelta.x, _dividerHeight);
+                lineObj.sizeDelta = new Vector2(lineObj.sizeDelta.x, relativeHeight * _generalDividerHeight);
+                lineObj.anchoredPosition += Vector2.up * (_generalDividerHeight * (1 - relativeHeight)) / 2;
 
                 subdivIndex++;
             }
 
             // Disable the rest of the gridlines
-            for (int i = thinLineIndex; i < _initialGraphicsCount; i++)
+            for (int i = veryThinLineIndex; i < _veryThinGridlineObjects.Count; i++)
+            {
+                _veryThinGridlineObjects[i].gameObject.SetActive(false);
+            }
+            
+            for (int i = thinLineIndex; i < _thinGridlineObjects.Count; i++)
             {
                 _thinGridlineObjects[i].gameObject.SetActive(false);
             }
 
-            for (int i = thickLineIndex; i < _initialGraphicsCount; i++)
+            for (int i = thickLineIndex; i < _thickGridlineObjects.Count; i++)
             {
                 _thickGridlineObjects[i].gameObject.SetActive(false);
             }
@@ -450,7 +490,13 @@ namespace UI
         {
             _lockSeeker = @lock;
         }
+        
+        private void ToggleSnapState((bool, int) eData)
+        {
+            // behaviour moved to Toolbar.cs
+        }
 
+#region NODE FLAG AND MOUSE EVENTS
         private MoveEventCommand _queuedMoveCommand;
         private void HandleClickEventNode(EventNodeUI node)
         {
@@ -568,5 +614,6 @@ namespace UI
         {
             
         }
+#endregion
     }
 }
