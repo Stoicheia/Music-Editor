@@ -11,6 +11,7 @@ namespace DefaultNamespace.Input
         
         private float _time;
         private float _vertical;
+        private float _duration;
         private EventNodeUI _eventNode;
 
         public DeleteNodeCommand(EventNodeUI node)
@@ -18,6 +19,7 @@ namespace DefaultNamespace.Input
             _eventNode = node;
             _time = node.Time;
             _vertical = node.Vertical;
+            _duration = node.Event.DurationSeconds;
         }
         
         public override void Apply(TimelineUI ui, EditorEngine engine)
@@ -36,6 +38,9 @@ namespace DefaultNamespace.Input
             ui.EventToNode[newEvent].Vertical = _vertical;
             ui.EventToNode[newEvent].Event = newEvent;
             _eventNode = newNode;
+            
+            newEvent.SetDuration(_duration);
+            newEvent.Vertical = _vertical;
         }
     }
 }

@@ -1355,6 +1355,7 @@ MonoBehaviour:
   _timeline: {fileID: 1517862365}
   _selector: {fileID: 370530706}
   _toolbar: {fileID: 869904411}
+  _commandManager: {fileID: 1436671648}
   _loader: {fileID: 1768505451}
   _noSongSelectedGraphic: {fileID: 740088653}
 --- !u!114 &370530706
@@ -6954,7 +6955,8 @@ MonoBehaviour:
   _draw: 308
   _seekLockToggle: 115
   _togglePause: 32
-  _shift: 304
+  _undo: 122
+  _redo: 121
 --- !u!1 &1768505450
 GameObject:
   m_ObjectHideFlags: 0

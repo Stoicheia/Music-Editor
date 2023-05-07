@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using DefaultNamespace.Input;
 using DefaultNamespace.LevelEditor;
 using Rhythm;
 using RhythmEngine;
@@ -22,6 +23,7 @@ namespace UI
         [SerializeField] private TimelineUI _timeline;
         [SerializeField] private SelectorUI _selector;
         [SerializeField] private ToolbarUI _toolbar;
+        [SerializeField] private TimelineCommandManager _commandManager;
         [Header("Loader")] 
         [SerializeField] private SongLoader _loader;
 
@@ -40,6 +42,14 @@ namespace UI
                 _loadData = (data, clip);
                 Init(_loadData);
                 _noSongSelectedGraphic.gameObject.SetActive(false);
+            };
+            Keybinds.OnUndoPressed += () =>
+            {
+                _commandManager.UndoCommand(_timeline, _engine);
+            };
+            Keybinds.OnRedoPressed += () =>
+            {
+                _commandManager.RedoCommand(_timeline, _engine);
             };
         }
 
