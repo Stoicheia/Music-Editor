@@ -7,7 +7,7 @@ namespace Rhythm
     public class SongPlayer : MonoBehaviour
     {
         private AudioSource _audio;
-        private SongAsset _activeSong; //MOVE BASE SET TO LEVELEDITORUI
+        private SongAsset _activeSong; //MOVE BASE SET TO LevelEditorUI.cs
 
         private void Awake()
         {

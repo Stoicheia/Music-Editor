@@ -19,7 +19,7 @@ namespace Rhythm
 
         public int BeatsInABar()
         {
-            return _numerator * _denominator / 4;
+            return _numerator;
         }
     }
 }

@@ -59,10 +59,10 @@ namespace UI
         [SerializeField] [Range(0, 1)] private float _veryThinDividerHeight = 250;
         [Header("Drawers")] 
         [SerializeField] private BarNumberDrawerUI _barNumberDrawer;
+        [SerializeField] private TimelineFlagsDrawerUI _flagsDrawer;
 
         [Header("Advanced")] 
         [SerializeField] private TimelineCommandManager _commandManager;
-        [SerializeField] private TimelineFlagsDrawerUI _flagsDrawer;
         [SerializeField] private RectTransform _dividerGraphicsRoot;
         [SerializeField] private RectTransform _eventGraphicsRoot;
         [SerializeField] private RectTransform _connectorGraphicsRoot;

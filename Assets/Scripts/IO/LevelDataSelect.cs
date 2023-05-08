@@ -58,6 +58,7 @@ namespace IO
             await Task.Delay(_messageFlashDuration);
             message.gameObject.SetActive(false);
             
+            
             return result;
         }
 

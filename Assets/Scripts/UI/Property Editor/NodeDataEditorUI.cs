@@ -18,7 +18,7 @@ namespace UI
             {
                 _activeEvent = value;
                 if(value == null) _graphicsRoot.gameObject.SetActive(false);
-                else Draw(_activeEvent);
+                else UpdateGraphics(_activeEvent);
             }
         }
 
@@ -37,7 +37,7 @@ namespace UI
             _propertyDrawers = new List<NodePropertyDrawerUI>();
         }
 
-        private void Draw(RhythmEvent e)
+        private void UpdateGraphics(RhythmEvent e)
         {
             // Clear all property drawers
             foreach (var p in _propertyDrawers)

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace DefaultNamespace.Input
 {
+    /// <summary>
+    /// Unimplemented.
+    /// </summary>
     public class ClearAllCommand : TimelineCommand
     {
         private LevelData _cachedLevelData;

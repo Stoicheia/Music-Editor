@@ -31,7 +31,7 @@ namespace DefaultNamespace.LevelEditor
             string destinationPath = Path.Combine(Application.persistentDataPath, FileBrowserHelpers.GetFilename(path));
             FileBrowserHelpers.CopyFile( path, destinationPath);
             
-            // Load file from original path
+            // Load file from original path (using web request hack)
             AudioClip clip = null;
             using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(path, AudioType.WAV))
             {
