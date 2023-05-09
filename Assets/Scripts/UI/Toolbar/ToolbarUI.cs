@@ -10,7 +10,7 @@ namespace UI
 {
     public enum ToolbarOption
     {
-        Select, Draw
+        Select, Draw, Record
     }
 
     public class ToolbarUI : MonoBehaviour
@@ -21,7 +21,14 @@ namespace UI
         public event Action<bool> OnToggleSeekerState;
         public event Action<(bool, int)> OnToggleSnapState;
 
-        public ToolbarOption ActiveOption => _activeOption;
+        public ToolbarOption ActiveOption
+        {
+            get => _activeOption;
+            set
+            {
+                ChangeOption(value);
+            }
+        }
         public int Subdivision => _subdivision;
         public bool SnapToGrid => _snapOn;
 
@@ -122,5 +129,6 @@ namespace UI
             _snapOn = !_snapOn;
             OnToggleSnapState?.Invoke((_snapOn, _subdivision));
         }
+        
     }
 }

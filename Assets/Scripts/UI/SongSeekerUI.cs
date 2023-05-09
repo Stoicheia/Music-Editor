@@ -12,6 +12,8 @@ namespace UI
     [RequireComponent(typeof(Slider))]
     public class SongSeekerUI : MonoBehaviour
     {
+        public float SongTimeSeconds => _audio.time;
+        public float SongLengthSeconds => _audio.clip.length;
         public float ScrollSpeedMultiplier { get; set; }
         private Slider _slider;
         private AudioSource _audio;
@@ -36,9 +38,7 @@ namespace UI
                 _timeField.text = "";
                 return;
             }
-            
             _timeField.text = _audio.clip == null ? "0:00/0:00" : GetTimeString();
-
             _slider.value = _audio.time / _audio.clip.length;
         }
 
@@ -78,10 +78,6 @@ namespace UI
             if(_audio.isPlaying) PauseSong();
             else UnpauseSong();
         }
-
-        public float SongTimeSeconds => _audio.time;
-
-        public float SongLengthSeconds => _audio.clip.length;
 
         private void UpdateSongTime(float val)
         {

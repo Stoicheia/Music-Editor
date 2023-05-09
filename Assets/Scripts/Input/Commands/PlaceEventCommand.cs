@@ -27,6 +27,7 @@ namespace DefaultNamespace.Input
             ui.EventToNode[newEvent] = newNode;
             ui.EventToNode[newEvent].Vertical = _vertical;
             ui.EventToNode[newEvent].Event = newEvent;
+            ui.EventToNode[newEvent].Event.Vertical = _vertical;
             _eventNode = newNode;
         }
 

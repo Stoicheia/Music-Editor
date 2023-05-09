@@ -1,16 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace DefaultNamespace.Input
 {
+    
     public class Keybinds : MonoBehaviour
     {
-        public static event Action OnDrawPressed;
-        public static event Action OnDrawReleased;
-        public static event Action OnSeekLockToggle;
-        public static event Action OnTogglePause;
-        public static event Action OnUndoPressed;
-        public static event Action OnRedoPressed;
+        [Serializable]
+        class RecordKey
+        {
+            public KeyCode Key;
+            public int Value;
+        }
+
+        public static event Action OnDrawPressed, OnDrawReleased, OnSeekLockToggle, OnTogglePause, 
+                OnUndoPressed, OnRedoPressed, OnRecordPressed;
+
+        public static event Action<int> OnRecordKey, OnHoldKey, OnReleaseKey;
         public static bool Shift;
         public static bool Ctrl;
         
@@ -33,7 +41,9 @@ namespace DefaultNamespace.Input
         [SerializeField] private KeyCode _togglePause = KeyCode.Space;
         [SerializeField] private KeyCode _undo = KeyCode.Z;
         [SerializeField] private KeyCode _redo = KeyCode.Y;
-        
+        [SerializeField] private KeyCode _record = KeyCode.R;
+        [SerializeField] private List<RecordKey> _recordKeys;
+
         private void Awake()
         {
             if (_instance != null)
@@ -55,10 +65,27 @@ namespace DefaultNamespace.Input
                    UnityEngine.Input.GetKey(KeyCode.RightControl) ||
                    UnityEngine.Input.GetKey(KeyCode.LeftCommand) ||
                    UnityEngine.Input.GetKey(KeyCode.RightCommand);
+            
             if(UnityEngine.Input.GetKeyDown(_draw)) OnDrawPressed?.Invoke();
             if(UnityEngine.Input.GetKeyUp(_draw)) OnDrawReleased?.Invoke();
             if(UnityEngine.Input.GetKeyDown(_seekLockToggle)) OnSeekLockToggle?.Invoke();
+            if(UnityEngine.Input.GetKeyDown(_record)) OnRecordPressed?.Invoke();
             if(UnityEngine.Input.GetKeyDown(_togglePause)) OnTogglePause?.Invoke();
+            foreach (var keyPair in _recordKeys)
+            {
+                if (UnityEngine.Input.GetKeyDown(keyPair.Key))
+                {
+                    OnRecordKey?.Invoke(keyPair.Value);
+                }
+                if (UnityEngine.Input.GetKey(keyPair.Key))
+                {
+                    OnHoldKey?.Invoke(keyPair.Value);
+                }
+                if (UnityEngine.Input.GetKeyUp(keyPair.Key))
+                {
+                    OnReleaseKey?.Invoke(keyPair.Value);
+                }
+            }
             if (Ctrl)
             {
                 if(UnityEngine.Input.GetKeyDown(_undo)) OnUndoPressed?.Invoke();

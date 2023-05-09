@@ -320,8 +320,9 @@ namespace UI
             }
         }
         
-        private EventNodeUI PlaceNew(float time, float vertical)
+        public EventNodeUI PlaceNew(float time, float vertical, bool snap = false)
         {
+            if (snap) time = _snapToGrid ? Snap(time) : time;
             PlaceEventCommand eventCommand = new PlaceEventCommand(time, vertical);
             _commandManager.ApplyCommand(eventCommand, this, Engine);
             return eventCommand.EventNode;
@@ -546,7 +547,7 @@ namespace UI
             _ghostGraphic.sizeDelta = new Vector2(_nodeRadius * 2, _nodeRadius * 2);
         }
 
-        private float Snap(float time)
+        public float Snap(float time)
         {
             // Binary search to find nearest time on the beat
             var times = _subdivisionsAndOrders.Select(x => x.Item1).ToList();
@@ -616,6 +617,12 @@ namespace UI
             
             float relPos = Mathf.InverseLerp(_panelLeft.x, _panelRight.x, anchoredPos.x);
             float time = Mathf.Lerp(_leftTime, _rightTime, relPos);
+            float boundedTime = Mathf.Max(node.Event.TimeSeconds, time);
+            node.Event.SetEndTime(_snapToGrid ? Snap(boundedTime) : boundedTime);
+        }
+        
+        public void ExtendEventNode(EventNodeUI node, float time)
+        {
             float boundedTime = Mathf.Max(node.Event.TimeSeconds, time);
             node.Event.SetEndTime(_snapToGrid ? Snap(boundedTime) : boundedTime);
         }
