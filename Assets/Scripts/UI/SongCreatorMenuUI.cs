@@ -10,8 +10,6 @@ namespace UI
 {
     public class SongCreatorMenuUI : MonoBehaviour
     {
-        
-        
         [Header("Fields")]
         [SerializeField] private TMP_InputField _nameField;
         [SerializeField] private TMP_InputField _authorField;

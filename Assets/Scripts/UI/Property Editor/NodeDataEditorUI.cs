@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using Rhythm;
 using UnityEditor.U2D.Path;
 using UnityEngine;
@@ -17,7 +18,7 @@ namespace UI
             set
             {
                 _activeEvent = value;
-                if(value == null) _graphicsRoot.gameObject.SetActive(false);
+                if(value == null) _allGraphics.gameObject.SetActive(false);
                 else UpdateGraphics(_activeEvent);
             }
         }
@@ -25,8 +26,9 @@ namespace UI
         [Header("Graphics Options")]
         [SerializeField] private NodeIntDrawerUI _nodeIntDrawerPrefab;
         [SerializeField] private NodeStringDrawerUI _nodeStringDrawerPrefab;
-        [Header("Advanced")] 
+        [Header("Graphics")] 
         [SerializeField] private RectTransform _graphicsRoot;
+        [SerializeField] private RectTransform _allGraphics;
 
         private RhythmEvent _activeEvent;
 
@@ -37,8 +39,21 @@ namespace UI
             _propertyDrawers = new List<NodePropertyDrawerUI>();
         }
 
+        private void Start()
+        {
+            SelectorUI.OnSelectObject += HandleSelectObject;
+        }
+
+        private void HandleSelectObject(ISelectorInteractor obj)
+        {
+            EventNodeBase node = obj as EventNodeBase;
+            if (node == null) return;
+            ActiveEvent = node.Parent.Event;
+        }
+
         private void UpdateGraphics(RhythmEvent e)
         {
+            _allGraphics.gameObject.SetActive(true);
             // Clear all property drawers
             foreach (var p in _propertyDrawers)
             {

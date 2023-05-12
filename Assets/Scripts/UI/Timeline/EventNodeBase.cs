@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Object = System.Object;
 
 namespace UI
 {
@@ -14,11 +16,14 @@ namespace UI
     {
         protected static EventNodeBase Selected;
         public EventNodeUI Parent { get; set; }
+        public List<EventNodeBase> Children { get; set; }
         public RectTransform rectTransform => _rectTransform;
         protected NodeState State;
         protected Image Img;
 
         private RectTransform _rectTransform;
+
+        private bool _eventIsLastSelected;
 
         [Header("Graphics Settings")] 
         [SerializeField] protected Sprite NormalSprite;
@@ -33,11 +38,33 @@ namespace UI
             State = NodeState.Normal;
         }
 
+        private void OnEnable()
+        {
+            SelectorUI.OnSelectObject += HandleObjectSelected;
+        }
+
+        private void OnDisable()
+        {
+            SelectorUI.OnSelectObject -= HandleObjectSelected;
+        }
+
         protected virtual void Update()
         {
             if (Parent.ParentUI.Toolbar.ActiveOption == ToolbarOption.Draw)
             {
                 Img.sprite = NormalSprite;
+                return;
+            }
+            if (Parent.ParentUI.Toolbar.ActiveOption == ToolbarOption.Properties)
+            {
+                Img.sprite = State switch
+                {
+                    NodeState.Normal => NormalSprite,
+                    NodeState.Hovered => HoveredSprite,
+                    NodeState.Selected => SelectedSprite,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+                if (_eventIsLastSelected) Img.sprite = SelectedSprite;
                 return;
             }
             Img.sprite = State switch
@@ -48,10 +75,17 @@ namespace UI
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
+        
+        private void HandleObjectSelected(ISelectorInteractor obj)
+        {
+            EventNodeBase node = obj as EventNodeBase;
+            if (node == null) return;
+            _eventIsLastSelected = node.Parent.Event == Parent.Event;
+        }
 
         public virtual void OnPointerEnter(PointerEventData eventData)
         {
-            if(State != NodeState.Selected && Selected == null)
+            if(State != NodeState.Selected && Selected == null && Parent.ParentUI.Toolbar.ActiveOption != ToolbarOption.Properties)
                 State = NodeState.Hovered;
         }
 
@@ -63,7 +97,6 @@ namespace UI
 
         public virtual void Select(SelectInfo info, Vector2 pos, bool special = false)
         {
-            
         }
 
         public virtual void Click(SelectInfo info, Vector2 pos)

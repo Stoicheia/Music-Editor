@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Rhythm;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -46,7 +47,7 @@ namespace UI
         public void Init()
         {
             Parent = this;
-            
+
             _extenderInstance = Instantiate(_extenderPrefab, ExtenderRoot);
             _endNodeInstance = Instantiate(_endNodePrefab, transform.parent);
             _endNodeInstance.transform.SetAsFirstSibling();
@@ -56,6 +57,7 @@ namespace UI
 
             _extenderInstance.Parent = this;
             _endNodeInstance.Parent = this;
+            Children = new List<EventNodeBase>() {_extenderInstance, _endNodeInstance};
 
             _extenderInstance.rectTransform.pivot = new Vector2(0, 0.5f);
         }

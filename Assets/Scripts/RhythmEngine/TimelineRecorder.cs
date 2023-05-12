@@ -16,6 +16,7 @@ namespace RhythmEngine
         [SerializeField] private SongSeekerUI _songSeeker;
         [SerializeField] private ToolbarUI _toolbar;
         [SerializeField] private float _stacking = 0.05f;
+        [SerializeField] private RectTransform _recordInstructions;
 
         private bool _isRecording;
         private Dictionary<int, EventNodeUI> _keyToActive;
@@ -33,6 +34,7 @@ namespace RhythmEngine
             Keybinds.OnRecordKey += HandlePressKey;
             Keybinds.OnHoldKey += HandleHoldKey;
             Keybinds.OnReleaseKey += HandleReleaseKey;
+            _recordInstructions.gameObject.SetActive(false);
         }
 
         private void HandlePressRecord()
@@ -42,6 +44,7 @@ namespace RhythmEngine
                 _toolbar.ActiveOption = ToolbarOption.Record;
             }
             _isRecording = !_isRecording;
+            _recordInstructions.gameObject.SetActive(_isRecording);
             OnToggleRecord?.Invoke(_isRecording);
             if (_isRecording)
             {

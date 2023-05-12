@@ -9,8 +9,11 @@ namespace UI
 {
     public class SelectorUI : MonoBehaviour, IPointerDownHandler, IPointerMoveHandler, IPointerUpHandler, IPointerClickHandler
     {
-        [SerializeField] private float _doubleClickThreshold;
+        public static event Action<ISelectorInteractor> OnSelectObject;
         
+        [SerializeField] private float _doubleClickThreshold;
+
+        private ISelectorInteractor _lastSelectedObject;
         private ISelectorInteractor _currentSelectedObject;
         private SelectInfo _currentSelectedInfo;
         
@@ -27,11 +30,13 @@ namespace UI
         public void SelectObject(ISelectorInteractor isl, SelectInfo info, Vector2 pos, bool doubleClick = false)
         {
             isl.Select(info, pos, doubleClick);
+            OnSelectObject?.Invoke(isl);
         }
 
         public void ClickOnObject(ISelectorInteractor isl, SelectInfo info, Vector2 pos)
         {
             _currentSelectedObject = isl;
+            _lastSelectedObject = isl;
             _currentSelectedInfo = info;
             isl.Click(info, pos);
         }

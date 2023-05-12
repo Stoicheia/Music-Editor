@@ -364,6 +364,11 @@ namespace UI
             float bpm = bpmChanges[bpmIndex++].Bpm;
             Rhythm.TimeSignature timeSig = timeSigChanges[timeSigIndex++].TimeSignature;
 
+            float modifiedBpm()
+            {
+                return bpm * timeSig.Denominator / 4;
+            }
+
             BpmChange nextBpmChange = bpmIndex < bpmChanges.Count ? bpmChanges[bpmIndex] : null;
             TimeSignatureChange nextSigChange = timeSigIndex < timeSigChanges.Count ? timeSigChanges[timeSigIndex] : null;
 
@@ -396,7 +401,7 @@ namespace UI
                 int order = bbs.Beat == 1 && bbs.Subdiv == 0 ? 1 : bbs.Subdiv == 0 ? 0 : -1;
 
                 _subdivisionsAndOrders.Add((t, order, bbs.Bar));
-                t += MathUtility.BeatsToSeconds(1, bpm)/Toolbar.Subdivision;
+                t += MathUtility.BeatsToSeconds(1, modifiedBpm())/Toolbar.Subdivision;
                 bbs = bbs.Add(0,0, subdivUnit);
             }
         }

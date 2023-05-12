@@ -10,7 +10,7 @@ namespace UI
 {
     public enum ToolbarOption
     {
-        Select, Draw, Record
+        Select, Draw, Record, Properties
     }
 
     public class ToolbarUI : MonoBehaviour
