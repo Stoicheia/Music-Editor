@@ -8,7 +8,7 @@ namespace UI
     {
         public IntData Data { get; set; }
 
-        public override void OnRequestValueChange(string s)
+        protected override void OnRequestValueChange(string s)
         {
             int value;
             int.TryParse(s, out value);
