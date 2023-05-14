@@ -11,6 +11,7 @@ namespace RhythmEngine
     [RequireComponent(typeof(AudioSource))]
     public class EditorEngine : MonoBehaviour
     {
+        public event Action<LevelData> OnLoad;
         public event Action OnForceUpdate;
         //public SongAsset Song => _song;
         public AudioSource AudioSource => _source;
@@ -41,12 +42,14 @@ namespace RhythmEngine
         {
             _loadedSong = clip;
             _levelData = levelData;
+            OnLoad?.Invoke(levelData);
         }
 
         public void LoadNewFromAsset(SongAsset song)
         {
             _loadedSong = song.Clip;
             _levelData = new LevelData(song);
+            OnLoad?.Invoke(_levelData);
         }
 
         public void AddEvent(RhythmEvent e)

@@ -25,6 +25,7 @@ namespace UI
             {
                 field.onValidateInput += ValidateInput;
                 field.onValueChanged.AddListener(OnRequestValueChange);
+                
             }
             _propertyNameField.onValueChanged.AddListener(OnChangePropertyName);
             if(_removeButton != null)

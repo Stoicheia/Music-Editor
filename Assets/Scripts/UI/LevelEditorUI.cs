@@ -15,7 +15,7 @@ namespace UI
     {
         public float CurrentBpm { get; set; }
         public TimeSignature CurrentTimeSignature { get; set; }
-        
+
         [Header("Systems")]
         [SerializeField] private SongAsset _loadedSong;
         [SerializeField] private EditorEngine _engine;

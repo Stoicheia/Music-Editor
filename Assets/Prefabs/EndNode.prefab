@@ -89,6 +89,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cc4300378c046918ede042fb77e2afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  NormalSprite: {fileID: 21300000, guid: c4a3a4c24421ea042910826fd44a9e01, type: 3}
-  HoveredSprite: {fileID: 21300000, guid: b41681d7fd0097f4dbf4322053f79cf4, type: 3}
-  SelectedSprite: {fileID: 21300000, guid: 8c0bc4349a6ced047b76f85e87c9ef08, type: 3}
+  NormalSprite: {fileID: 21300000, guid: ab9ee07be8a9e4748bfcd4fdb3db1963, type: 3}
+  HoveredSprite: {fileID: 21300000, guid: fa7c900e6a6d64c4b9199dc0554f0451, type: 3}
+  SelectedSprite: {fileID: 21300000, guid: d2e240e0334c0e74995f726d8248de41, type: 3}

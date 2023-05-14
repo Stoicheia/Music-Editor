@@ -12,6 +12,8 @@ namespace UI
     [RequireComponent(typeof(Slider))]
     public class SongSeekerUI : MonoBehaviour
     {
+        public static Action OnScroll;
+        public bool IsPlaying => _audio.isPlaying;
         public float SongTimeSeconds => _audio.time;
         public float SongLengthSeconds => _audio.clip.length;
         public float ScrollSpeedMultiplier { get; set; }
@@ -95,6 +97,7 @@ namespace UI
         public void SetTime(float t)
         {
             UpdateSongTime(t / SongLengthSeconds);
+            OnScroll?.Invoke();
         }
 
         public void Scroll(float s)

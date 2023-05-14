@@ -31,6 +31,9 @@ namespace UI
         }
         public int Subdivision => _subdivision;
         public bool SnapToGrid => _snapOn;
+        public int HorizontalLaneCount => _horizontalLaneCount;
+        public bool HorizontalSnapOn => _horizontalSnapOn;
+        public bool ClickSFXOn { get; set; }
 
         [Header("Buttons")] [SerializeField] private List<ToolbarButtonUI> _buttons;
         [SerializeField] private Button _bpmFlagButton;
@@ -38,13 +41,19 @@ namespace UI
         [SerializeField] private Button _timeSigFlagButton;
         [SerializeField] private ToolbarToggle _seekerToggle;
         [SerializeField] private BeatSnapDivisorUI _snapDivisorSlider;
+        [SerializeField] private BeatSnapDivisorUI _horizontalLaneSlider;
         [SerializeField] private Button _snapToggleButton;
+        [SerializeField] private ToolbarToggle _horizontalSnapToggleButton;
+        [SerializeField] private ToolbarToggle _clickSfxButton;
 
         [Header("Options")] [SerializeField] private ToolbarOption _defaultOption;
         [SerializeField] private int _subdivision = 1;
+        [SerializeField] private int _horizontalLaneCount;
 
         private ToolbarOption _activeOption;
         private bool _snapOn;
+        private bool _horizontalSnapOn;
+        
 
         private void Start()
         {
@@ -58,13 +67,23 @@ namespace UI
             _timeSigFlagButton.onClick.AddListener(RequestTimeSignatureFlag);
             _seekerToggle.OnToggle += HandleSeekerToggle;
             _snapDivisorSlider.OnChangeDivs += HandleBeatSnapChange;
+            _horizontalLaneSlider.OnChangeDivs += HandleHorizontalSnapChange;
             _snapToggleButton.onClick.AddListener(HandleToggleSnap);
+            _horizontalSnapToggleButton.OnToggle += HandleToggleSnapHorz;
+            _clickSfxButton.OnToggle += HandleToggleClickSfx;
 
             Keybinds.OnDrawPressed += TempDrawOn;
             Keybinds.OnDrawReleased += TempDrawOff;
             Keybinds.OnSeekLockToggle += ToggleSeeker;
 
             ChangeOption(_defaultOption);
+            _horizontalLaneCount = _horizontalLaneSlider.DivsPerBeat;
+            ClickSFXOn = _clickSfxButton.State;
+        }
+
+        private void HandleToggleClickSfx(bool on)
+        {
+            ClickSFXOn = on;
         }
 
         private void TempDrawOn()
@@ -123,11 +142,21 @@ namespace UI
             _subdivision = value;
             OnToggleSnapState?.Invoke((_snapOn, _subdivision));
         }
+        
+        private void HandleHorizontalSnapChange(int value)
+        {
+            _horizontalLaneCount = value;
+        }
 
         private void HandleToggleSnap()
         {
             _snapOn = !_snapOn;
             OnToggleSnapState?.Invoke((_snapOn, _subdivision));
+        }
+        
+        private void HandleToggleSnapHorz(bool b)
+        {
+            _horizontalSnapOn = b;
         }
         
     }

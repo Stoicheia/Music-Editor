@@ -16,6 +16,7 @@ namespace UI
 {
     public class TimelineUI : MonoBehaviour, ISelectorInteractor
     {
+        public event Action<int> OnPassDiv;
         public SelectorUI Selector { get; set; }
         public SongSeekerUI SongSeeker { get; set; }
         public LevelEditorUI LevelEditor { get; set; }
@@ -60,6 +61,7 @@ namespace UI
         [Header("Drawers")] 
         [SerializeField] private BarNumberDrawerUI _barNumberDrawer;
         [SerializeField] private TimelineFlagsDrawerUI _flagsDrawer;
+        [SerializeField] private TimelineHorizontalLinesDrawerUI _horizontalLinesDrawer;
 
         [Header("Advanced")] 
         [SerializeField] private TimelineCommandManager _commandManager;
@@ -98,15 +100,19 @@ namespace UI
         private TimeSignature TimeSignature => Engine.GetTimeSignature(SongSeeker.SongTimeSeconds);
 
         private bool _isInitialised;
+        private (float, int, int) _nextSubdivision;
 
         private void Awake()
         {
             EventNodeUI.ExtenderRoot = _connectorGraphicsRoot;
             _flagsDrawer.Timeline = this;
+            _horizontalLinesDrawer.Timeline = this;
         }
 
         public void Init()
         {
+            Keybinds.RecordKeybinds = true;
+            
             _subdivisionsAndOrders = new List<(float, int, int)>();
             _thickGridlineObjects = new List<RectTransform>();
             _thinGridlineObjects = new List<RectTransform>();
@@ -118,6 +124,7 @@ namespace UI
             
             _barNumberDrawer.Init(this, Engine);
             _flagsDrawer.Init(this, Engine);
+            _horizontalLinesDrawer.Init(this, Engine);
             
             for (int i = 0; i < _initialGraphicsCount; i++)
             {
@@ -168,12 +175,15 @@ namespace UI
 
             BpmField.OnRequestMove += HandleBpmFieldMove;
             TimeSignatureField.OnRequestMove += HandleTimeSigFieldMove;
+            
+            SongSeekerUI.OnScroll += () => _nextSubdivision = CalculateNextSubdivision(SongSeeker.SongTimeSeconds);
 
             RecalculateSubdivisions();
             _leftTime = Mathf.Min(SongSeeker.SongLengthSeconds - _focusSeconds, SongSeeker.SongTimeSeconds - _focusSeconds / 2);
             _rightTime = Mathf.Min(SongSeeker.SongLengthSeconds, SongSeeker.SongTimeSeconds + _focusSeconds / 2);
             
             _isInitialised = true;
+            _nextSubdivision = (0,1,0);
         }
 
         private void HandleSeekerRelease()
@@ -235,6 +245,7 @@ namespace UI
             _flagsDrawer.Clear();
             _seekerGraphic.Clear();
             _barNumberDrawer.Clear();
+            _horizontalLinesDrawer.Clear();
             foreach (var graphic in _eventObjects)
             {
                 graphic.DestroyChildren();
@@ -255,8 +266,6 @@ namespace UI
             _thickGridlineObjects.Clear();
             Destroy(_seekerGraphic.gameObject);
         }
-
-
         private void Update()
         {
             if (!_isInitialised) return;
@@ -282,6 +291,7 @@ namespace UI
             
             if(_flagsDrawer != null)
                 _flagsDrawer.Draw(Engine, _panel, _leftTime, _rightTime);
+            _horizontalLinesDrawer.Draw(Engine, _panel, _leftTime, _rightTime);
             if(_ghostEventEnabled && Toolbar.ActiveOption == ToolbarOption.Draw) UpdateGhostGraphics();
             else _ghostGraphic.gameObject.SetActive(false);
 
@@ -317,6 +327,20 @@ namespace UI
                         SongSeeker.Scroll(moveBy);
                     }
                 }
+            }
+            
+            // Detect when beat passed
+            if (SongSeeker.IsPlaying)
+            {
+                if (SongSeeker.SongTimeSeconds > _nextSubdivision.Item1)
+                {
+                    OnPassDiv?.Invoke(_nextSubdivision.Item2);
+                    _nextSubdivision = CalculateNextSubdivision(SongSeeker.SongTimeSeconds);
+                }
+            }
+            else
+            {
+                _nextSubdivision = CalculateNextSubdivision(SongSeeker.SongTimeSeconds);
             }
         }
         
@@ -545,7 +569,10 @@ namespace UI
             float newRelPos = Mathf.InverseLerp(_leftTime, _rightTime, songTime);
 
             float x = Vector2.Lerp(_panelLeft, _panelRight, newRelPos).x;
-            float y = anchoredMousePos.y;
+
+            float relY = Mathf.InverseLerp(_panel.yMin, _panel.yMax, anchoredMousePos.y);
+            float snapY = _horizontalLinesDrawer.SnapVertical(relY);
+            float y = Mathf.Lerp(_panel.yMin, _panel.yMax, snapY);
             
             Vector2 newPos = new Vector2(x, y);
             _ghostGraphic.anchoredPosition = newPos;
@@ -608,7 +635,7 @@ namespace UI
             float relPos = Mathf.InverseLerp(_panelLeft.x, _panelRight.x, anchoredPos.x);
             float time = Mathf.Lerp(_leftTime, _rightTime, relPos);
             node.Event.SetTime(_snapToGrid ? Snap(time) : time);
-            node.Vertical = Mathf.InverseLerp(_panel.yMin, _panel.yMax, anchoredPos.y);
+            node.Vertical = _horizontalLinesDrawer.SnapVertical(Mathf.InverseLerp(_panel.yMin, _panel.yMax, anchoredPos.y));
             node.Event.Vertical = node.Vertical;
             
             Engine.UpdateEvents();
@@ -673,6 +700,7 @@ namespace UI
             );
 
             change.Time = Mathf.Clamp(timeData.Item1, 0, SongSeeker.SongLengthSeconds);
+            Engine.ForceUpdate();
         }
         
         private void HandleTimeSigFieldMove(TimeSignatureChange change, Vector2 pos)
@@ -689,6 +717,7 @@ namespace UI
             );
 
             change.Time = Mathf.Clamp(timeData.Item1, 0, SongSeeker.SongLengthSeconds);
+            Engine.ForceUpdate();
         }
 
         public void Select(SelectInfo info, Vector2 pos, bool empty = false)
@@ -708,8 +737,8 @@ namespace UI
                 float relPos = Mathf.InverseLerp(_panelLeft.x, _panelRight.x, anchoredPos.x);
                 float time = Mathf.Lerp(_leftTime, _rightTime, relPos);
                 float vertical = Mathf.InverseLerp(_panel.yMin, _panel.yMax, anchoredPos.y);
-                _activeNode = PlaceNew(_snapToGrid ? Snap(time) : time, vertical);
-                _activeNode.Event.Vertical = vertical;
+                _activeNode = PlaceNew(_snapToGrid ? Snap(time) : time, _horizontalLinesDrawer.SnapVertical(vertical));
+                _activeNode.Event.Vertical = _horizontalLinesDrawer.SnapVertical(vertical);
                 _clickTimer = _clickCooldown;
             }
         }
@@ -735,6 +764,20 @@ namespace UI
         public void RightClicked(SelectInfo info, Vector2 pos)
         {
             
+        }
+#endregion
+#region UTILITY
+        private (float, int, int) CalculateNextSubdivision(float time)
+        {
+            int k = 0;
+            for (int i = _subdivisionsAndOrders.Count / 2; i > 0; i /= 2)
+            {
+                while (i + k < _subdivisionsAndOrders.Count && time > _subdivisionsAndOrders[i + k].Item1)
+                    k += i;
+            }
+
+            var next = _subdivisionsAndOrders[(k + 1) % _subdivisionsAndOrders.Count];
+            return next;
         }
 #endregion
     }

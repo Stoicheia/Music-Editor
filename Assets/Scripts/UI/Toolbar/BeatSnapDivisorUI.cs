@@ -17,6 +17,7 @@ namespace UI
         [Header("Settings")] 
         [SerializeField] private List<int> _allowedDivisors;
         [SerializeField] private int _initialSliderIndex = 0;
+        [SerializeField] private bool _invertValueString = true;
 
         private int _divsPerBeat;
         private void Start()
@@ -37,7 +38,7 @@ namespace UI
         private void SetValue(int index)
         {
             _divsPerBeat = _allowedDivisors[index];
-            _divisorValueField.text = $"1/{_divsPerBeat}";
+            _divisorValueField.text = _invertValueString ? $"1/{_divsPerBeat}" : $"{_divsPerBeat}";
             OnChangeDivs?.Invoke(_divsPerBeat);
         }
     }

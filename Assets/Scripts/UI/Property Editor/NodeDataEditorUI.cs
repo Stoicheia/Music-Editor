@@ -137,6 +137,7 @@ namespace UI
         private void RemoveProperty(NodePropertyDrawerUI obj)
         {
             ActiveEvent.RemoveData(obj.Data);
+            UpdateGraphics(ActiveEvent);
         }
     }
 }

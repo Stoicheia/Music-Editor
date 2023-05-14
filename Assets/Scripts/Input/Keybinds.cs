@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace DefaultNamespace.Input
 {
@@ -14,6 +15,8 @@ namespace DefaultNamespace.Input
             public KeyCode Key;
             public int Value;
         }
+        
+        public static bool RecordKeybinds { get; set; }
 
         public static event Action OnDrawPressed, OnDrawReleased, OnSeekLockToggle, OnTogglePause, 
                 OnUndoPressed, OnRedoPressed, OnRecordPressed;
@@ -59,6 +62,9 @@ namespace DefaultNamespace.Input
 
         private void Update()
         {
+            if (!RecordKeybinds) return;
+            if (EventSystem.current.currentSelectedGameObject != null) return;
+            
             Shift = UnityEngine.Input.GetKey(KeyCode.LeftShift) || 
                     UnityEngine.Input.GetKey(KeyCode.RightShift);
             Ctrl = UnityEngine.Input.GetKey(KeyCode.LeftControl) || 

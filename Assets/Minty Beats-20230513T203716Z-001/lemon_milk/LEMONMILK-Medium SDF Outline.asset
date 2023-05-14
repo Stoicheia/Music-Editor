@@ -9,7 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: LEMONMILK-Medium SDF Material
   m_Shader: {fileID: 4800000, guid: 68e6db2ebdc24f95958faec2be5558d6, type: 3}
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - UNDERLAY_ON
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -67,7 +68,7 @@ Material:
     - _OutlineSoftness: 0
     - _OutlineUVSpeedX: 0
     - _OutlineUVSpeedY: 0
-    - _OutlineWidth: 0
+    - _OutlineWidth: 0.136
     - _PerspectiveFilter: 0.875
     - _Reflectivity: 10
     - _ScaleRatioA: 0.8333333
@@ -115,11 +116,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
-  m_Name: LEMONMILK-Medium SDF
+  m_Name: LEMONMILK-Medium SDF Outline
   m_EditorClassIdentifier: 
-  hashCode: -2016410617
+  hashCode: -839256825
   material: {fileID: -5722517579475348438}
-  materialHashCode: 1459100743
+  materialHashCode: -156635833
   m_Version: 1.1.0
   m_SourceFontFileGUID: 6d4a85645dfa12a46a4da98a8cbab270
   m_SourceFontFile_EditorRef: {fileID: 12800000, guid: 6d4a85645dfa12a46a4da98a8cbab270, type: 3}
