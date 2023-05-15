@@ -57,7 +57,7 @@ Click on the flag buttons to create a flag at the current seeker position. Right
 Changing keybinds is currently not supported.
 
 | Key  | Description |
-| ------------- | ------------- |
+| ---------------- | ------------- |
 | **CTRL + Z, CTRL + Y**  | Undo/Redo. |
 | **SPACEBAR**  | Play/pause the song. |
 | **ALT**  | While using the **SELECT** tool, holding **ALT** will temporarily switch to the **DRAW** tool.   |
