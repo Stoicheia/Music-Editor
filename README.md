@@ -57,8 +57,9 @@ Click on the flag buttons to create a flag at the current seeker position. Right
 Changing keybinds is currently not supported.
 
 | Key  | Description |
-| ---------------- | ------------- |
-| **CTRL + Z, CTRL + Y**  | Undo/Redo. |
+| ------------- | ------------- |
+| **CTRL + Z**  | Undo. |
+| **CTRL + Y**  | Redo. |
 | **SPACEBAR**  | Play/pause the song. |
 | **ALT**  | While using the **SELECT** tool, holding **ALT** will temporarily switch to the **DRAW** tool.   |
 | **S**  | Set the timeline position to the seeker and lock the seeker to the center until it is moved manually.  |
