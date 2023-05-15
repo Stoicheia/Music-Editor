@@ -6,6 +6,8 @@ namespace UI
 {
     public class TimelineHorizontalLinesDrawerUI : TimelineDrawerHelperUI
     {
+        public int LaneCount => _laneCount;
+        
         [SerializeField] private ToolbarUI _toolbar;
         [SerializeField] private RectTransform _horizontalLinePrefab;
         [SerializeField] private int _initialGraphicsCount = 20;
@@ -57,6 +59,11 @@ namespace UI
             if (!_toolbar.HorizontalSnapOn) return value;
             float laneSize = 1.0f / _laneCount;
             return Mathf.FloorToInt(value * _laneCount) / (float) _laneCount + laneSize / 2;
+        }
+
+        public float LaneToVertical(int lane)
+        {
+            return (lane + 0.5f)/_laneCount;
         }
     }
 }

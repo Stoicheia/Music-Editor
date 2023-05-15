@@ -105,6 +105,11 @@ namespace UI
             SetTime(_audio.time + s);
         }
 
+        public void SetVolume(float v)
+        {
+            if(_audio != null) _audio.volume = v;
+        }
+
         private string GetTimeString()
         {
             return $"{StringUtility.SecondsPrettyString(_audio.time)}/{StringUtility.SecondsPrettyString(_audio.clip.length)}";

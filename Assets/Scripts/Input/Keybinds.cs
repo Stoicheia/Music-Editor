@@ -10,10 +10,11 @@ namespace DefaultNamespace.Input
     public class Keybinds : MonoBehaviour
     {
         [Serializable]
-        class RecordKey
+        public class RecordKey
         {
             public KeyCode Key;
-            public int Value;
+            public int Lane;
+            public bool Hold;
         }
         
         public static bool RecordKeybinds { get; set; }
@@ -21,7 +22,7 @@ namespace DefaultNamespace.Input
         public static event Action OnDrawPressed, OnDrawReleased, OnSeekLockToggle, OnTogglePause, 
                 OnUndoPressed, OnRedoPressed, OnRecordPressed;
 
-        public static event Action<int> OnRecordKey, OnHoldKey, OnReleaseKey;
+        public static event Action<RecordKey> OnRecordKey, OnHoldKey, OnReleaseKey;
         public static bool Shift;
         public static bool Ctrl;
         
@@ -81,15 +82,15 @@ namespace DefaultNamespace.Input
             {
                 if (UnityEngine.Input.GetKeyDown(keyPair.Key))
                 {
-                    OnRecordKey?.Invoke(keyPair.Value);
+                    OnRecordKey?.Invoke(keyPair);
                 }
                 if (UnityEngine.Input.GetKey(keyPair.Key))
                 {
-                    OnHoldKey?.Invoke(keyPair.Value);
+                    OnHoldKey?.Invoke(keyPair);
                 }
                 if (UnityEngine.Input.GetKeyUp(keyPair.Key))
                 {
-                    OnReleaseKey?.Invoke(keyPair.Value);
+                    OnReleaseKey?.Invoke(keyPair);
                 }
             }
             if (Ctrl)

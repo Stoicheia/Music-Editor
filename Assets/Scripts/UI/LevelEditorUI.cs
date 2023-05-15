@@ -53,6 +53,11 @@ namespace UI
             };
         }
 
+        private void Update()
+        {
+            _seeker.SetVolume(_toolbar.Volume);
+        }
+
         public void InitFromAsset(SongAsset asset = null)
         {
             var loadAsset = asset ? asset : _loadedSong;

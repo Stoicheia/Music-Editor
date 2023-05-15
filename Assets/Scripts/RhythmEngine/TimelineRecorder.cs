@@ -12,20 +12,21 @@ namespace RhythmEngine
         public event Action<bool> OnToggleRecord;
         
         [SerializeField] private TimelineUI _timeline;
+        [SerializeField] private TimelineHorizontalLinesDrawerUI _horizontalLines;
         [SerializeField] private EditorEngine _engine;
         [SerializeField] private SongSeekerUI _songSeeker;
         [SerializeField] private ToolbarUI _toolbar;
-        [SerializeField] private float _stacking = 0.05f;
+        //[SerializeField] private float _stacking = 0.05f;
         [SerializeField] private RectTransform _recordInstructions;
 
         private bool _isRecording;
-        private Dictionary<int, EventNodeUI> _keyToActive;
-        private Dictionary<float, int> _stackingSet;
+        private Dictionary<Keybinds.RecordKey, EventNodeUI> _keyToActive;
+        //private Dictionary<float, int> _stackingSet;
 
         private void Awake()
         {
-            _keyToActive = new Dictionary<int, EventNodeUI>();
-            _stackingSet = new Dictionary<float, int>();
+            _keyToActive = new Dictionary<Keybinds.RecordKey, EventNodeUI>();
+            //_stackingSet = new Dictionary<float, int>();
         }
 
         private void Start()
@@ -59,37 +60,35 @@ namespace RhythmEngine
             {
                 _keyToActive[key] = null;
             }
-            _stackingSet.Clear();
+            //_stackingSet.Clear();
             _toolbar.ToggleSeeker(true);
         }
         
-        private void HandleReleaseKey(int k)
+        private void HandleReleaseKey(Keybinds.RecordKey keyInfo)
         {
             if (!_isRecording) return;
-            if (!_keyToActive.ContainsKey(k)) return;
-            _keyToActive[k] = null;
+            if (!_keyToActive.ContainsKey(keyInfo)) return;
+            _keyToActive[keyInfo] = null;
         }
 
-        private void HandleHoldKey(int k)
+        private void HandleHoldKey(Keybinds.RecordKey keyInfo)
         {
             if (!_isRecording) return;
-            if (!_keyToActive.ContainsKey(k)) return;
             foreach (var keyPair in _keyToActive)
             {
-                if (keyPair.Value == null || keyPair.Key == 1) return;
+                if (keyPair.Value == null || !keyPair.Key.Hold || keyPair.Key != keyInfo) continue;
                 _timeline.ExtendEventNode(keyPair.Value, _songSeeker.SongTimeSeconds);
             }
         }
 
-        private void HandlePressKey(int k)
+        private void HandlePressKey(Keybinds.RecordKey keyInfo)
         {
             if (!_isRecording) return;
-            EventNodeUI eNode = _timeline.PlaceNew(_songSeeker.SongTimeSeconds, 0.75f, true);
-            _keyToActive[k] = eNode;
-            if(!_stackingSet.ContainsKey(eNode.Time)) _stackingSet.Add(eNode.Time, 0);
-            eNode.Vertical -= _stackingSet[eNode.Time] * _stacking;
+            if (keyInfo.Lane >= _horizontalLines.LaneCount) return;
+            float vertical = _horizontalLines.LaneToVertical(keyInfo.Lane);
+            EventNodeUI eNode = _timeline.PlaceNew(_songSeeker.SongTimeSeconds, vertical, true);
+            _keyToActive[keyInfo] = eNode;
             eNode.Event.Vertical = eNode.Vertical;
-            _stackingSet[eNode.Time]++;
         }
     }
 }

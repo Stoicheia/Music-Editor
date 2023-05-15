@@ -34,8 +34,9 @@ namespace UI
         public int HorizontalLaneCount => _horizontalLaneCount;
         public bool HorizontalSnapOn => _horizontalSnapOn;
         public bool ClickSFXOn { get; set; }
+        public float Volume => _volumeSlider.value;
 
-        [Header("Buttons")] [SerializeField] private List<ToolbarButtonUI> _buttons;
+        [Header("Settings")] [SerializeField] private List<ToolbarButtonUI> _buttons;
         [SerializeField] private Button _bpmFlagButton;
         [SerializeField] private Button _offsetFlagButton;
         [SerializeField] private Button _timeSigFlagButton;
@@ -45,6 +46,7 @@ namespace UI
         [SerializeField] private Button _snapToggleButton;
         [SerializeField] private ToolbarToggle _horizontalSnapToggleButton;
         [SerializeField] private ToolbarToggle _clickSfxButton;
+        [SerializeField] private Slider _volumeSlider;
 
         [Header("Options")] [SerializeField] private ToolbarOption _defaultOption;
         [SerializeField] private int _subdivision = 1;
@@ -79,6 +81,8 @@ namespace UI
             ChangeOption(_defaultOption);
             _horizontalLaneCount = _horizontalLaneSlider.DivsPerBeat;
             ClickSFXOn = _clickSfxButton.State;
+
+            _volumeSlider.value = 1;
         }
 
         private void HandleToggleClickSfx(bool on)
