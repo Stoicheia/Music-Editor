@@ -100,3 +100,6 @@ Here are some games that use beatmaps created with some iteration of Minty Beats
 - [Starfunk Fever](https://radetzky.itch.io/starfunk-fever) - absorb all the instruments that shoot bullets to the rhythm of the music.
 - [Hare Runner](https://crychair.itch.io/harerunner), a melee bullet hell where, you guessed it, enemies shoot bullets to the rhythm of the music. *We used FMOD for some aspects of this game. FMOD is pretty trash for rhythm games and was clearly not designed for them*.
 - [Campfire Friends](https://radetzky.itch.io/campfire-friends), a sort of DDR clone. Press keys corresponding to the right materials at the right time.
+
+## License
+Minty Beats is free to use for your projects. For commercial projects, pwease credit "Olin Gao" or "Radetzky" somewhere.
