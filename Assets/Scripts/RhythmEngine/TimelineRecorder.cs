@@ -38,6 +38,11 @@ namespace RhythmEngine
             _recordInstructions.gameObject.SetActive(false);
         }
 
+        private void Update()
+        {
+            if(_isRecording && !_songSeeker.IsPlaying) HandlePressRecord();
+        }
+
         private void HandlePressRecord()
         {
             if (_toolbar.ActiveOption != ToolbarOption.Record)

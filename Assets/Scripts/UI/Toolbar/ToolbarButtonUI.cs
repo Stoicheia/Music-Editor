@@ -16,6 +16,7 @@ namespace UI
         [Header("Graphics")] 
         [SerializeField] private Sprite _activeSprite;
         [SerializeField] private Sprite _inactiveSprite;
+        [SerializeField] private RectTransform _activeGraphics;
 
         private void Start()
         {
@@ -31,12 +32,14 @@ namespace UI
         {
             if (_activeSprite != null) _image.sprite = _activeSprite;
             else _image.color = Color.white;
+            _activeGraphics.gameObject.SetActive(true);
         }
 
         public void SetGraphicInactive()
         {
             if (_inactiveSprite != null) _image.sprite = _inactiveSprite;
             else _image.color = Color.gray;
+            _activeGraphics.gameObject.SetActive(false);
         }
     }
 }
