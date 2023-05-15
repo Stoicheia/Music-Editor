@@ -77,7 +77,7 @@ Import the **Dependencies** directory into your Unity project. Write your own de
 You can ask me or steal the source code of one of the games below (might fill in this section in more detail later).
 
 ### What is a Beatmap?
-A beatmap is a list of events that correspond to an audio file. Events must contain time data - this specifies when the event occurs relative to the audio file. Events may contain other data too. Duration and one-dimensional position are very common pieces of data.
+A beatmap is a list of events that correspond to an audio clip. Events must contain time data - this specifies when the event occurs relative to the audio clip. Events may contain other data too. Duration and one-dimensional position are very common pieces of data.
 
 ### How do you Sync Events with Music?
 You probably want to achieve one of the following:
@@ -85,13 +85,17 @@ You probably want to achieve one of the following:
 1. Fire an event at certain points in the music.
 2. Upon user input, check how close they were to an event relative to the music.
 
-Very fundamentally speaking, syncing is all about keeping track of the previous event and the next event you're interested in. In the first case, you can just keep track of the next event. In the second case, you need to keep track of both the previous and next event, and remove events from an "interested" list upon user input. Keep track of references to event objects as opposed to primitives (i.e. floats) for event times.
+Here are a few common things to keep in mind:
+
+1. For best accuracy, measure audio time in samples.
+2. Break up your events into "lanes". Update pointers on these lanes separately as the music moves forward; keep track of events around current time; mark "used" events and reset state when time moves backwards.
+3. In-game objects that respond to rhythm should have their relevant positions/states set by the rhythm engine. Rhythm objects should generally not update on their own accord.
 
 ### The Lag Question
 - Limit FPS.
 - For bullet hells, you can calculate the entire trajectory of each bullet instead of letting the game engine's movement handle it *ad-hoc*.
 - For classic rhythm games (e.g. DDR clones), don't do anything fancy; you will probably get it right on your first attempt. Be as strict as possible with lag's effects on hit accuracy.
-- For online games, do everything client-side obviously. Look up the history of cheating in *osu!*.
+- For online games, do everything client-side obviously.
 
 ## Games
 Here are some games that use beatmaps created with some iteration of Minty Beats. The source code of all these games are on my GitHub.
