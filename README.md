@@ -83,7 +83,7 @@ A beatmap is a list of events that correspond to an audio file. Events must cont
 You probably want to achieve one of the following:
 
 1. Fire an event at certain points in the music.
-2. Upon user input, check how close they were to a certain event relative to the music.
+2. Upon user input, check how close they were to an event relative to the music.
 
 Very fundamentally speaking, syncing is all about keeping track of the previous event and the next event you're interested in. In the first case, you can just keep track of the next event. In the second case, you need to keep track of both the previous and next event, and remove events from an "interested" list upon user input. Keep track of references to event objects as opposed to primitives (i.e. floats) for event times.
 
