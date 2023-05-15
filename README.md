@@ -8,7 +8,7 @@ Minty Beats is a general-purpose beatmap editor. Specify when events should occu
 * Supports mid-song **BPM/Time signature changes**!
 * **Record** keystrokes in real-time to create nodes on the beatmap!
 * Edit node **metadata** to specify additional event properties!
-* **Deserialize** and **convert** the beatmap data to whatever beatmap data structure you're using!
+* Sleek beatmap visualisation with advanced grid snapping (quantization) options!
 
 ## Installation
 Install the Unity build for your operating system. If you want to deserialize the JSON beatmaps created with this program, also import the **Dependencies** folder into your Unity project.
