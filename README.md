@@ -58,6 +58,8 @@ Changing keybinds is currently not supported.
 
 | Key  | Description |
 | ------------- | ------------- |
+| **Right Click**  | Delete nodes while using the **DRAW** tool. |
+| **Right Click + Drag**  | Delete multiple nodes. |
 | **CTRL + Z**  | Undo. |
 | **CTRL + Y**  | Redo. |
 | **SPACEBAR**  | Play/pause the song. |
@@ -66,7 +68,6 @@ Changing keybinds is currently not supported.
 | **R**  | Start recording.  |
 | **Alpha 1-8**  | Create nodes on the timeline when recording. Hold to create nodes with duration. If **SNAP TO GRID** is enabled, nodes will snap to the vertical gridlines. |
 | **F1-F8**  | Same as above, but holding does nothing. |
-| **Right Click**  | Delete nodes while using the **DRAW** tool. |
 | **Scroll**  | Moves the song/seeker forward/backward. |
 | **Shift + Scroll**  | Toggles horizontal zoom of the timeline (vertical zoom currently not supported). |
 
