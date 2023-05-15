@@ -19,6 +19,7 @@ namespace UI
         public event Action<EventNodeUI> OnSelect;
         public event Action<EventNodeUI, Vector2> OnMove;
         public event Action<EventNodeUI> OnRightClick;
+        public event Action<EventNodeUI> OnRequestDelete;
         public event Action<EventNodeUI, Vector2> OnRequestExtension;
         public event Action<EventNodeUI> OnPlace;
         
@@ -134,6 +135,11 @@ namespace UI
         public override void RightClicked(SelectInfo info, Vector2 pos)
         {
             OnRightClick?.Invoke(this);
+        }
+        
+        public void ForceDelete(SelectInfo info, Vector2 pos)
+        {
+            OnRequestDelete?.Invoke(this);
         }
 
         public void RequestExtension(SelectInfo info, Vector2 pos)

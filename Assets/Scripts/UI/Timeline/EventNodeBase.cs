@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UserInput;
 using Object = System.Object;
 
 namespace UI
@@ -12,7 +13,7 @@ namespace UI
         Normal, Hovered, Selected
     }
     [RequireComponent(typeof(Image))]
-    public abstract class EventNodeBase : MonoBehaviour, ISelectorInteractor, IPointerEnterHandler, IPointerExitHandler
+    public abstract class EventNodeBase : MonoBehaviour, ISelectorInteractor, IPointerEnterHandler, IPointerExitHandler, ISelectionBoxInteractor
     {
         protected static EventNodeBase Selected;
         public EventNodeUI Parent { get; set; }
@@ -41,11 +42,13 @@ namespace UI
         private void OnEnable()
         {
             SelectorUI.OnSelectObject += HandleObjectSelected;
+            RightClickDragDeleteManager.Interactors.Add(this);
         }
 
         private void OnDisable()
         {
             SelectorUI.OnSelectObject -= HandleObjectSelected;
+            RightClickDragDeleteManager.Interactors.Remove(this);
         }
 
         protected virtual void Update()
@@ -119,6 +122,16 @@ namespace UI
         public virtual void RightClicked(SelectInfo info, Vector2 pos)
         {
             
+        }
+
+        public void MultiSelect()
+        {
+            Parent.ForceDelete(new SelectInfo(this), _rectTransform.anchoredPosition);
+        }
+
+        public Vector2 GetSelectionPoint()
+        {
+            return rectTransform.position;
         }
     }
 }

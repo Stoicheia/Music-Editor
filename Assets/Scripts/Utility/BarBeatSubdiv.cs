@@ -1,5 +1,4 @@
-﻿using UnityEditor.ShortcutManagement;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Utility
 {

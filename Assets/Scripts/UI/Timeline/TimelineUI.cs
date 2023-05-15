@@ -6,7 +6,6 @@ using Rhythm;
 using RhythmEngine;
 using TMPro;
 using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using Utility;
@@ -162,6 +161,7 @@ namespace UI
             {
                 enode.OnClick += HandleClickEventNode;
                 enode.OnRightClick += HandleRightClickEventNode;
+                enode.OnRequestDelete += DeleteNode;
                 enode.OnMove += HandleMoveEventNode;
                 enode.OnRequestExtension += HandleExtendEventNode;
                 enode.OnPlace += HandlePlaceEventNode;
@@ -620,9 +620,9 @@ namespace UI
         private void HandleRightClickEventNode(EventNodeUI node)
         {
             if (Toolbar.ActiveOption != ToolbarOption.Draw) return;
-        
             DeleteNode(node);
         }
+
 
         private void HandleMoveEventNode(EventNodeUI node, Vector2 pos)
         {
