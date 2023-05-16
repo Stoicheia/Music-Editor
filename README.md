@@ -41,6 +41,7 @@ This program is best used for **rhythm game prototypes**, **non-rhythm games whe
 | ------------- | ------------- |
 | **PLAY/PAUSE**  | Self-explanatory. |
 | **VOLUME**  | Self-explanatory. |
+| **GLOBAL OFFSET**  | Adjusts offset between timeline position and audio. |
 | **Music Icon**  | When enabled, a beep plays at every beat. Use this to assist in determining offsets and BPM changes. *It is recommended that you know the BPM changes and offsets of the song in advance*. |
 
 ### Flags
