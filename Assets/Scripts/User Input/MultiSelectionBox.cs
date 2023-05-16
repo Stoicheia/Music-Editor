@@ -14,8 +14,8 @@ namespace UserInput
     {
         public Vector2 StartPoint
         {
-            get;
-            set;
+            get => _startPoint;
+            private set => _startPoint = value;
         }
 
         public Vector2 EndPoint
@@ -24,9 +24,8 @@ namespace UserInput
             set
             {
                 _endPoint = value;
-                _bounds.center = Vector2.Lerp(_startPoint, _endPoint, 0.5f);
-                _bounds.height = Mathf.Abs(_startPoint.y - _endPoint.y);
-                _bounds.width = Mathf.Abs(_startPoint.x - _endPoint.x);
+                _bounds.min = new Vector2(Mathf.Min(_startPoint.x, _endPoint.x), Mathf.Min(_startPoint.y, _endPoint.y));
+                _bounds.max = new Vector2(Mathf.Max(_startPoint.x, _endPoint.x), Mathf.Max(_startPoint.y, _endPoint.y));
             }
         }
 

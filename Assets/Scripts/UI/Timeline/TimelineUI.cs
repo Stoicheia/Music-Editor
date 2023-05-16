@@ -6,6 +6,7 @@ using Rhythm;
 using RhythmEngine;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using Utility;
@@ -94,9 +95,10 @@ namespace UI
         private Dictionary<RhythmEvent, EventNodeUI> _eventToNode;
         private Queue<EventNodeUI> _eventNodePool;
 
+        private float CurrentTime => SongSeeker.SongTimeSeconds + Toolbar.Offset/1000;
         private float Offset => 0;
-        private float Bpm => Engine.GetBpm(SongSeeker.SongTimeSeconds);
-        private TimeSignature TimeSignature => Engine.GetTimeSignature(SongSeeker.SongTimeSeconds);
+        private float Bpm => Engine.GetBpm(CurrentTime);
+        private TimeSignature TimeSignature => Engine.GetTimeSignature(CurrentTime);
 
         private bool _isInitialised;
         private (float, int, int) _nextSubdivision;
@@ -141,11 +143,15 @@ namespace UI
             _ghostGraphic = Instantiate(_ghostEventPrefab, _eventGraphicsRoot).GetComponent<RectTransform>();
             _seekerGraphic = Instantiate(_seekerPrefab, _foregroundGraphicsRoot);
             _seekerGraphic.Audio = SongSeeker;
+            _seekerGraphic.Toolbar = Toolbar;
             _seekerGraphic.SetConfig(_seekerHeight, _seekerOffset);
             _seekerGraphic.Init(this, Engine);
             _seekerGraphic.OnMove += HandleSeekerMove;
             _seekerGraphic.OnRelease += HandleSeekerRelease;
 
+            if(_invalidRegionGraphicLeft != null) Destroy(_invalidRegionGraphicLeft.gameObject);
+            if(_invalidRegionGraphicRight != null) Destroy(_invalidRegionGraphicRight.gameObject);
+            
             _invalidRegionGraphicLeft =
                 Instantiate(_invalidRegionPrefabL, _dividerGraphicsRoot).GetComponent<RectTransform>();
             _invalidRegionGraphicRight =
@@ -176,11 +182,11 @@ namespace UI
             BpmField.OnRequestMove += HandleBpmFieldMove;
             TimeSignatureField.OnRequestMove += HandleTimeSigFieldMove;
             
-            SongSeekerUI.OnScroll += () => _nextSubdivision = CalculateNextSubdivision(SongSeeker.SongTimeSeconds);
+            SongSeekerUI.OnScroll += () => _nextSubdivision = CalculateNextSubdivision(CurrentTime);
 
             RecalculateSubdivisions();
-            _leftTime = Mathf.Min(SongSeeker.SongLengthSeconds - _focusSeconds, SongSeeker.SongTimeSeconds - _focusSeconds / 2);
-            _rightTime = Mathf.Min(SongSeeker.SongLengthSeconds, SongSeeker.SongTimeSeconds + _focusSeconds / 2);
+            _leftTime = Mathf.Min(SongSeeker.SongLengthSeconds - _focusSeconds, CurrentTime - _focusSeconds / 2);
+            _rightTime = Mathf.Min(SongSeeker.SongLengthSeconds, CurrentTime + _focusSeconds / 2);
             
             _isInitialised = true;
             _nextSubdivision = (0,1,0);
@@ -332,15 +338,15 @@ namespace UI
             // Detect when beat passed
             if (SongSeeker.IsPlaying)
             {
-                if (SongSeeker.SongTimeSeconds > _nextSubdivision.Item1)
+                if (CurrentTime > _nextSubdivision.Item1)
                 {
                     OnPassDiv?.Invoke(_nextSubdivision.Item2);
-                    _nextSubdivision = CalculateNextSubdivision(SongSeeker.SongTimeSeconds);
+                    _nextSubdivision = CalculateNextSubdivision(CurrentTime);
                 }
             }
             else
             {
-                _nextSubdivision = CalculateNextSubdivision(SongSeeker.SongTimeSeconds);
+                _nextSubdivision = CalculateNextSubdivision(CurrentTime);
             }
         }
         
@@ -365,7 +371,7 @@ namespace UI
 
         private void UpdateTimelinePosition()
         {
-            float centerSeconds = SongSeeker.SongTimeSeconds;
+            float centerSeconds = CurrentTime;
             float maxTime = SongSeeker.SongLengthSeconds;
 
             if (_lockSeeker)
@@ -670,19 +676,19 @@ namespace UI
         
         private void CreateBpmChangeFlag()
         {
-            Engine.BpmChanges.Add(new BpmChange(SongSeeker.SongTimeSeconds, Bpm));
+            Engine.BpmChanges.Add(new BpmChange(CurrentTime, Bpm));
             Engine.ForceUpdate();
         }
         
         private void CreateOffsetFlag()
         {
-            Engine.BpmChanges.Add(new BpmChange(SongSeeker.SongTimeSeconds, Bpm, true));
+            Engine.BpmChanges.Add(new BpmChange(CurrentTime, Bpm, true));
             Engine.ForceUpdate();
         }
 
         private void CreateTimeSignatureChangeFlag()
         {
-            Engine.TimeSigChanges.Add(new TimeSignatureChange(SongSeeker.SongTimeSeconds, TimeSignature));
+            Engine.TimeSigChanges.Add(new TimeSignatureChange(CurrentTime, TimeSignature));
             Engine.ForceUpdate();
         }
         

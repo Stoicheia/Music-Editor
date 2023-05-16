@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using DefaultNamespace.Input;
 using UI;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace RhythmEngine
 {
@@ -61,10 +60,7 @@ namespace RhythmEngine
                 _toolbar.ActiveOption = ToolbarOption.Select;
                 _songSeeker.PauseSong();
             }
-            foreach (var key in _keyToActive.Keys)
-            {
-                _keyToActive[key] = null;
-            }
+            _keyToActive.Clear();
             //_stackingSet.Clear();
             _toolbar.ToggleSeeker(true);
         }
@@ -82,7 +78,7 @@ namespace RhythmEngine
             foreach (var keyPair in _keyToActive)
             {
                 if (keyPair.Value == null || !keyPair.Key.Hold || keyPair.Key != keyInfo) continue;
-                _timeline.ExtendEventNode(keyPair.Value, _songSeeker.SongTimeSeconds);
+                _timeline.ExtendEventNode(keyPair.Value, _songSeeker.SongTimeSeconds + _toolbar.Offset/1000);
             }
         }
 
@@ -91,7 +87,7 @@ namespace RhythmEngine
             if (!_isRecording) return;
             if (keyInfo.Lane >= _horizontalLines.LaneCount) return;
             float vertical = _horizontalLines.LaneToVertical(keyInfo.Lane);
-            EventNodeUI eNode = _timeline.PlaceNew(_songSeeker.SongTimeSeconds, vertical, true);
+            EventNodeUI eNode = _timeline.PlaceNew(_songSeeker.SongTimeSeconds + _toolbar.Offset/1000, vertical, true);
             _keyToActive[keyInfo] = eNode;
             eNode.Event.Vertical = eNode.Vertical;
         }

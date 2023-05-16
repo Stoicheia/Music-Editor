@@ -12,6 +12,7 @@ namespace UI
         public event Action OnRelease;
         
         public SongSeekerUI Audio { get; set; }
+        public ToolbarUI Toolbar { get; set; }
         public bool SuppressMouseMove { get; set; }
 
         private RectTransform _rectTransform;
@@ -44,7 +45,7 @@ namespace UI
             _left = leftTime;
             _right = rightTime;
             
-            float t = MathUtility.InverseLerpUnclamped(leftTime, rightTime, Audio.SongTimeSeconds);
+            float t = MathUtility.InverseLerpUnclamped(leftTime, rightTime, Audio.SongTimeSeconds + Toolbar.Offset/1000);
             _rectTransform.anchoredPosition = 
                 Vector2.LerpUnclamped(new Vector2(panel.xMin, panel.y), new Vector2(panel.xMax, panel.y), t) + Vector2.up * Offset;
             _rectTransform.sizeDelta = new Vector2(_rectTransform.sizeDelta.x, Height);
@@ -77,9 +78,13 @@ namespace UI
                 true,
                 true
             );
-            
-            if(!SuppressMouseMove)
+
+            if (!SuppressMouseMove)
+            {
                 Audio.SetTime(time);
+                Audio.PauseSong();
+            }
+
             OnMove?.Invoke(time);
         }
 

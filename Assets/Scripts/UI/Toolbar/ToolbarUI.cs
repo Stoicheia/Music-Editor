@@ -35,6 +35,7 @@ namespace UI
         public bool HorizontalSnapOn => _horizontalSnapOn;
         public bool ClickSFXOn { get; set; }
         public float Volume => _volumeSlider.value;
+        public float Offset => _offsetSlider.Value;
 
         [Header("Settings")] [SerializeField] private List<ToolbarButtonUI> _buttons;
         [SerializeField] private Button _bpmFlagButton;
@@ -47,6 +48,7 @@ namespace UI
         [SerializeField] private ToolbarToggle _horizontalSnapToggleButton;
         [SerializeField] private ToolbarToggle _clickSfxButton;
         [SerializeField] private Slider _volumeSlider;
+        [SerializeField] private OffsetSliderUI _offsetSlider;
 
         [Header("Options")] [SerializeField] private ToolbarOption _defaultOption;
         [SerializeField] private int _subdivision = 1;

@@ -32,7 +32,6 @@ namespace UserInput
         private void Update()
         {
             if (_selectionBox == null) return;
-            
         }
 
         public void OnPointerDown(PointerEventData eventData)
