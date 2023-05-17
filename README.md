@@ -11,6 +11,8 @@ Minty Beats is a general-purpose beatmap editor, currently in development. Speci
 * Sleek beatmap visualisation with advanced grid snapping (quantization) options!
 
 ## Installation
+Google drive: https://drive.google.com/drive/folders/14qCns7FPPs10DIQmk8mMCtz-1l0S3xZH?usp=sharing
+
 Install the Unity build for your operating system (download the WINDOWS_BUILD, MAC_BUILD or LINUX_BUILD folder). If you want to deserialize the JSON beatmaps created with this program, also import the **Dependencies** folder into your Unity project.
 
 ## Who is this made for?
