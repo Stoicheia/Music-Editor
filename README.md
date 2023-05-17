@@ -11,9 +11,7 @@ Minty Beats is a general-purpose beatmap editor, currently in development. Speci
 * Sleek beatmap visualisation with advanced grid snapping (quantization) options!
 
 ## Installation
-Google drive: https://drive.google.com/drive/folders/14qCns7FPPs10DIQmk8mMCtz-1l0S3xZH?usp=sharing
-
-Install the Unity build for your operating system (download the WINDOWS_BUILD, MAC_BUILD or LINUX_BUILD folder). If you want to deserialize the JSON beatmaps created with this program, also import the **Dependencies** folder into your Unity project.
+[Click here and download the build for your operating system](https://drive.google.com/drive/folders/14qCns7FPPs10DIQmk8mMCtz-1l0S3xZH?usp=sharing). Alternatively, download this repository which includes a build. If you want to deserialize the JSON beatmaps created with this program, also import the **Dependencies** folder into your Unity project.
 
 ## Who is this made for?
 This program is best used for **rhythm game prototypes**, **non-rhythm games where gameplay syncs with music non-trivially**, or **DDR clones** (i.e.  games where things fall in lanes and you hit them at the right time). For full-fledged rhythm games with more complex mechanics, you can use Minty Beats for prototyping in early stages of development. But I highly recommend making your own beatmap editor where you can visualise gameplay in real time - especially if you plan to ship a custom beatmap editor with your game. I am happy to help anyone with this.
