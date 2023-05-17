@@ -3,7 +3,7 @@
 
 # Welcome to Minty Beats!
 
-Minty Beats is a general-purpose beatmap editor. Specify when events should occur relative to music. The program outputs a JSON file.
+Minty Beats is a general-purpose beatmap editor, currently in development. Specify when events should occur relative to music. The program outputs a JSON file.
 
 * Supports mid-song **BPM/Time signature changes**!
 * **Record** keystrokes in real-time to create nodes on the beatmap!
