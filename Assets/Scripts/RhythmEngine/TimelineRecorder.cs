@@ -20,11 +20,14 @@ namespace RhythmEngine
 
         private bool _isRecording;
         private Dictionary<Keybinds.RecordKey, EventNodeUI> _keyToActive;
+        private Dictionary<int, float> _laneToLastPlaced;
         //private Dictionary<float, int> _stackingSet;
 
         private void Awake()
         {
             _keyToActive = new Dictionary<Keybinds.RecordKey, EventNodeUI>();
+            _laneToLastPlaced = new Dictionary<int, float>();
+            ResetStacking();
             //_stackingSet = new Dictionary<float, int>();
         }
 
@@ -40,6 +43,14 @@ namespace RhythmEngine
         private void Update()
         {
             if(_isRecording && !_songSeeker.IsPlaying) HandlePressRecord();
+        }
+
+        private void ResetStacking()
+        {
+            for (int i = 0; i < 20; i++)
+            {
+                _laneToLastPlaced[i] = -100;
+            }
         }
 
         private void HandlePressRecord()
@@ -63,6 +74,7 @@ namespace RhythmEngine
             _keyToActive.Clear();
             //_stackingSet.Clear();
             _toolbar.ToggleSeeker(true);
+            ResetStacking();
         }
         
         private void HandleReleaseKey(Keybinds.RecordKey keyInfo)
@@ -87,7 +99,14 @@ namespace RhythmEngine
             if (!_isRecording) return;
             if (keyInfo.Lane >= _horizontalLines.LaneCount) return;
             float vertical = _horizontalLines.LaneToVertical(keyInfo.Lane);
-            EventNodeUI eNode = _timeline.PlaceNew(_songSeeker.SongTimeSeconds + _toolbar.Offset/1000, vertical, true);
+            float t = _songSeeker.SongTimeSeconds + _toolbar.Offset / 1000;
+            float placeTime = _toolbar.SnapToGrid ? _timeline.Snap(t) : t;
+            if (Mathf.Abs(placeTime - _laneToLastPlaced[keyInfo.Lane]) < 0.01f)
+            {
+                placeTime = _timeline.NextSubdivisionTime;
+            }
+            _laneToLastPlaced[keyInfo.Lane] = placeTime;
+            EventNodeUI eNode = _timeline.PlaceNew(placeTime, vertical, true);
             _keyToActive[keyInfo] = eNode;
             eNode.Event.Vertical = eNode.Vertical;
         }

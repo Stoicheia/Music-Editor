@@ -26,6 +26,7 @@ namespace UI
         public Dictionary<RhythmEvent, EventNodeUI> EventToNode => _eventToNode;
         public Queue<EventNodeUI> EventNodePool => _eventNodePool;
         private bool _snapToGrid => Toolbar.SnapToGrid;
+        public float NextSubdivisionTime => _nextSubdivision.Item1;
         
         [Header("User Settings")]
         [SerializeField] private float _focusSeconds;
@@ -112,6 +113,7 @@ namespace UI
 
         public void Init()
         {
+            Clear();
             Keybinds.RecordKeybinds = true;
             
             _subdivisionsAndOrders = new List<(float, int, int)>();
@@ -257,9 +259,12 @@ namespace UI
                 graphic.DestroyChildren();
                 Destroy(graphic.gameObject);
             }
+            
             _eventObjects.Clear();
             _eventNodePool.Clear();
             _eventToNode.Clear();
+            
+
             foreach (var graphic in _thinGridlineObjects)
             {
                 Destroy(graphic.gameObject);
@@ -350,7 +355,7 @@ namespace UI
             }
         }
         
-        public EventNodeUI PlaceNew(float time, float vertical, bool snap = false)
+        public EventNodeUI PlaceNew(float time, float vertical, bool snap = false, bool scooch = false)
         {
             if (snap) time = _snapToGrid ? Snap(time) : time;
             PlaceEventCommand eventCommand = new PlaceEventCommand(time, vertical);
@@ -524,6 +529,11 @@ namespace UI
             for (int i = 0; i < events.Count; i++)
             {
                 RhythmEvent e = events[i];
+                if (!_eventToNode.ContainsKey(e))
+                {
+                    Debug.LogError($"An event at time {e.TimeSeconds} became corrupted!");
+                    Engine.RemoveEvent(e);
+                }
                 var eventGraphic = _eventToNode[e];
                 
                 if (!e.WithinRange(_leftTime - 1, _rightTime + 1))

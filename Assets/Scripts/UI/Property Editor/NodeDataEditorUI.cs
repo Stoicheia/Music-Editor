@@ -72,6 +72,11 @@ namespace UI
                 if (timeData != null)
                     ActiveEvent.SetTime(timeData.FloatValue);
             }
+
+            if (ActiveEvent != null && _toolbar.ActiveOption != ToolbarOption.Properties)
+            {
+                ActiveEvent = null;
+            }
         }
         
         private void AddPropertyToCurrent()
