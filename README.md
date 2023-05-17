@@ -109,3 +109,5 @@ Here are some games that use beatmaps created with some iteration of Minty Beats
 
 ## License
 Minty Beats is free to use for your projects. For commercial projects, pwease credit "Olin Gao" or "Radetzky" somewhere.
+
+[Download](https://drive.google.com/drive/folders/14qCns7FPPs10DIQmk8mMCtz-1l0S3xZH?usp=share_link)
