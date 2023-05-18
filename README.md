@@ -90,7 +90,7 @@ You probably want to achieve one of the following:
 Here are a few common things to keep in mind:
 
 1. For best accuracy, measure audio time in samples.
-2. Break up your events into "lanes". Update pointers on these lanes separately as the music moves forward; keep track of events around current time; mark "used" events and reset state when time moves backwards.
+2. Break up your events into "lanes" (can be implemented as arrays, queues, doubly linked lists etc). Update pointers on these lanes separately as the music moves forward; keep track of events around current time; mark "used" events and reset state when time moves backwards.
 3. In-game objects that respond to rhythm should have their relevant positions/states set by the rhythm engine. Rhythm objects should generally not update on their own accord.
 
 ### The Lag Question
