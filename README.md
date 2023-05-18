@@ -104,7 +104,7 @@ Here are some games that use beatmaps created with some iteration of Minty Beats
 
 - [Weekday Warrior](https://xinmi.itch.io/weekday-warrior), a Vampire Survivors clone where you shoot bullets to the rhythm of the music.
 - [Starfunk Fever](https://radetzky.itch.io/starfunk-fever) - absorb all the instruments that shoot bullets to the rhythm of the music.
-- [Hare Runner](https://crychair.itch.io/harerunner), a melee bullet hell where, you guessed it, enemies shoot bullets to the rhythm of the music. *We used FMOD for some aspects of this game. FMOD is pretty trash for rhythm games and was clearly not designed for them*.
+- [Hare Runner](https://crychair.itch.io/harerunner), a melee bullet hell where, you guessed it, enemies shoot bullets to the rhythm of the music. *We used FMOD for some aspects of this game. Some rather hacky techniques are needed to make FMOD work for rhythm games, but hey, we got there in the end.*.
 - [Campfire Friends](https://radetzky.itch.io/campfire-friends), a sort of DDR clone. Press keys corresponding to the right materials at the right time.
 
 ## License
