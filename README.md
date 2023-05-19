@@ -11,7 +11,7 @@ Minty Beats is a general-purpose beatmap editor, currently in development. Speci
 * Sleek beatmap visualisation with advanced grid snapping (quantization) options!
 
 ## Installation
-Install the Unity build for your operating system (in the WINDOWS_BUILD, MAC_BUILD or LINUX_BUILD directories). If you want to deserialize the JSON beatmaps created with this program, also import the **Dependencies** folder into your Unity project.
+[Click here and download the build for your operating system](https://drive.google.com/drive/folders/14qCns7FPPs10DIQmk8mMCtz-1l0S3xZH?usp=sharing). Alternatively, download this repository which includes a build. If you want to deserialize the JSON beatmaps created with this program, also import the **Dependencies** folder into your Unity project.
 
 ## Who is this made for?
 This program is best used for **rhythm game prototypes**, **non-rhythm games where gameplay syncs with music non-trivially**, or **DDR clones** (i.e.  games where things fall in lanes and you hit them at the right time). For full-fledged rhythm games with more complex mechanics, you can use Minty Beats for prototyping in early stages of development. But I highly recommend making your own beatmap editor where you can visualise gameplay in real time - especially if you plan to ship a custom beatmap editor with your game. I am happy to help anyone with this.
@@ -90,7 +90,7 @@ You probably want to achieve one of the following:
 Here are a few common things to keep in mind:
 
 1. For best accuracy, measure audio time in samples.
-2. Break up your events into "lanes". Update pointers on these lanes separately as the music moves forward; keep track of events around current time; mark "used" events and reset state when time moves backwards.
+2. Break up your events into "lanes" (can be implemented as arrays, queues, doubly linked lists etc). Update pointers on these lanes separately as the music moves forward; keep track of events around current time; mark "used" events and reset state when time moves backwards.
 3. In-game objects that respond to rhythm should have their relevant positions/states set by the rhythm engine. Rhythm objects should generally not update on their own accord.
 
 ### The Lag Question
@@ -104,8 +104,10 @@ Here are some games that use beatmaps created with some iteration of Minty Beats
 
 - [Weekday Warrior](https://xinmi.itch.io/weekday-warrior), a Vampire Survivors clone where you shoot bullets to the rhythm of the music.
 - [Starfunk Fever](https://radetzky.itch.io/starfunk-fever) - absorb all the instruments that shoot bullets to the rhythm of the music.
-- [Hare Runner](https://crychair.itch.io/harerunner), a melee bullet hell where, you guessed it, enemies shoot bullets to the rhythm of the music. *We used FMOD for some aspects of this game. FMOD is pretty trash for rhythm games and was clearly not designed for them*.
+- [Hare Runner](https://crychair.itch.io/harerunner), a melee bullet hell where, you guessed it, enemies shoot bullets to the rhythm of the music. *We used FMOD for some aspects of this game. Some rather hacky techniques are needed to make FMOD work for rhythm games, but hey, we got there in the end.*.
 - [Campfire Friends](https://radetzky.itch.io/campfire-friends), a sort of DDR clone. Press keys corresponding to the right materials at the right time.
 
 ## License
 Minty Beats is free to use for your projects. For commercial projects, pwease credit "Olin Gao" or "Radetzky" somewhere.
+
+[Download](https://drive.google.com/drive/folders/14qCns7FPPs10DIQmk8mMCtz-1l0S3xZH?usp=share_link)
