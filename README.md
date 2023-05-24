@@ -79,7 +79,7 @@ Import the **Dependencies** directory into your Unity project. Write your own de
 You can ask me or steal the source code of one of the games below (might fill in this section in more detail later).
 
 ### What is a Beatmap?
-A beatmap is a list of events that correspond to an audio clip. Events must contain time data - this specifies when the event occurs relative to the audio clip. Events may contain other data too. Duration and one-dimensional position are very common pieces of data.
+A beatmap is a list of events that correspond to an audio clip. Events must contain time data - this specifies when the event occurs relative to the audio clip. Events may contain other data too. Duration and one-dimensional position (e.g. lanes) are very common pieces of data.
 
 ### How do you Sync Events with Music?
 You probably want to achieve one of the following:
